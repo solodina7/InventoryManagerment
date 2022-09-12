@@ -1,0 +1,771 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@using InventoryManagerment.Models.EF;
+@using InventoryManagerment.Common;
+@model IPagedList<InventoryManagerment.Models.EF.Product>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var user = (User)ViewBag.User;
+    var db = new InventoryDbContext();
+    var categoryList = (IPagedList<InventoryManagerment.Models.EF.ProductCategory>)ViewBag.ListProductCategory;
+    var pagelist = (List<InventoryManagerment.Models.EF.Export>)ViewBag.ListExport;
+    var listExport = db.Exports.ToList();
+    var listCategory = db.ProductCategories.ToList();
+    var listProduct = db.Products.ToList();
+    var listExportDetail = db.ExportDetails.ToList();
+    string addListProduct()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataProduct = new Array();");
+        foreach (var item in listProduct)
+        {
+            sb.Append($" dataProduct.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string DoanhThu(List<ExportDetail> exportDetails)
+    {
+        decimal sum = 0;
+        foreach (var item in exportDetails)
+        {
+            sum += (item.Price * item.Quantity);
+        }
+        return InventoryManagerment.Common.Functions.NumberToMoney(sum.ToString());
+    }
+    decimal sosanhdoanhthutheongay()
+    {
+
+        var homqua = DateTime.Today.AddDays(-1).Date;
+        var homnay = DateTime.Today.Date;
+        var Danhsachhomqua = db.Exports.Where(x => x.Time.Year == homqua.Year && x.Time.Month == homqua.Month && x.Time.Day == homqua.Day).ToList();
+        var Danhsachhomnay = db.Exports.Where(x => x.Time.Year == homnay.Year && x.Time.Month == homnay.Month && x.Time.Day == homnay.Day).ToList();
+        decimal tongdoanhthuhomqua = 0;
+        decimal tongdoanhthuhomnay = 0;
+        foreach (var item in Danhsachhomqua)
+        {
+            var danhsachchitiet = new List<ExportDetail>();
+            danhsachchitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongdoanhthuhomqua += (chitiet.Price * chitiet.Quantity);
+            }
+        }
+        foreach (var item in Danhsachhomnay)
+        {
+            var danhsachchitiet = new List<ExportDetail>();
+            danhsachchitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongdoanhthuhomnay += (chitiet.Price * chitiet.Quantity);
+            }
+        }
+        return tongdoanhthuhomnay - tongdoanhthuhomqua;
+    }
+    decimal sosanhchitieutheongay()
+    {
+        var homqua = DateTime.Today.AddDays(-1).Date;
+        var homnay = DateTime.Today.Date;
+        var Danhsachhomqua = db.Imports.Where(x => x.Time.Year == homqua.Year && x.Time.Month == homqua.Month && x.Time.Day == homqua.Day).ToList();
+        var Danhsachhomnay = db.Imports.Where(x => x.Time.Year == homnay.Year && x.Time.Month == homnay.Month && x.Time.Day == homnay.Day).ToList();
+        decimal tongdoanhthuhomqua = 0;
+        decimal tongdoanhthuhomnay = 0;
+        foreach (var item in Danhsachhomqua)
+        {
+            var danhsachchitiet = new List<ImportDetail>();
+            danhsachchitiet = db.ImportDetails.Where(x => x.ImportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongdoanhthuhomqua += (chitiet.ImportPrice * chitiet.Quantity);
+            }
+        }
+        foreach (var item in Danhsachhomnay)
+        {
+            var danhsachchitiet = new List<ImportDetail>();
+            danhsachchitiet = db.ImportDetails.Where(x => x.ImportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongdoanhthuhomnay += (chitiet.ImportPrice * chitiet.Quantity);
+            }
+        }
+        return tongdoanhthuhomnay - tongdoanhthuhomqua;
+    }
+    decimal sosanhdoanhthutheothang()
+    {
+        var thangnay = DateTime.Now.Date;
+        var thangtruoc = DateTime.Today.AddMonths(-1).Date;
+        decimal doanhthuthangnay = 0;
+        decimal doanhthuthangtruoc = 0;
+        var danhsachthangnay = db.Exports.Where(x => x.Time.Year == thangnay.Year && x.Time.Month == thangnay.Month).ToList();
+        var danhsachthangtruoc = db.Exports.Where(x => x.Time.Year == thangtruoc.Year && x.Time.Month == thangtruoc.Month).ToList();
+        if (danhsachthangnay == null)
+        {
+            foreach (var item in danhsachthangtruoc)
+            {
+                var chitiet = new List<ExportDetail>();
+                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+                foreach (var chitietxuat in chitiet)
+                {
+                    doanhthuthangtruoc += (chitietxuat.Price * chitietxuat.Quantity);
+                }
+            }
+            return doanhthuthangtruoc;
+        }
+        else if (danhsachthangtruoc == null)
+        {
+            foreach (var item in danhsachthangnay)
+            {
+                var chitiet = new List<ExportDetail>();
+                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+                foreach (var chitietxuat in chitiet)
+                {
+                    doanhthuthangnay += (chitietxuat.Price * chitietxuat.Quantity);
+                }
+            }
+            return doanhthuthangnay;
+        }
+        else
+        {
+            foreach (var item in danhsachthangnay)
+            {
+                var chitiet = new List<ExportDetail>();
+                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+                foreach (var chitietxuat in chitiet)
+                {
+                    doanhthuthangnay += (chitietxuat.Price * chitietxuat.Quantity);
+                }
+            }
+            foreach (var item in danhsachthangtruoc)
+            {
+                var chitiet = new List<ExportDetail>();
+                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+                foreach (var chitietxuat in chitiet)
+                {
+                    doanhthuthangtruoc += (chitietxuat.Price * chitietxuat.Quantity);
+                }
+            }
+            return doanhthuthangnay - doanhthuthangtruoc;
+        }
+
+    }
+    int soluongphieuxuathomnay()
+    {
+        var time = DateTime.Today.Date;
+        return db.Exports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day).ToList().Count;
+    }
+    int soluongphieuxuatchuaduyethomnay()
+    {
+        var time = DateTime.Today.Date;
+        return db.Exports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day && x.Status == false).ToList().Count;
+    }
+    int soluongphieuxuathomqua()
+    {
+        var time = DateTime.Today.AddDays(-1).Date;
+        return db.Exports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day).ToList().Count;
+    }
+    int soluongphieuxuatchuaduyethomqua()
+    {
+        var time = DateTime.Today.AddDays(-1).Date;
+        return db.Exports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day && x.Status==false).ToList().Count;
+    }
+    int soluongphieunhaphomnay()
+    {
+        var time = DateTime.Today.Date;
+        return db.Imports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day).ToList().Count;
+    }
+    int soluongphieunhaphomqua()
+    {
+        var time = DateTime.Today.AddDays(-1).Date;
+        return db.Imports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day).ToList().Count;
+    }
+    int soluongphieuxuattrongtuan()
+    {
+        var ngaydautientrongtuan = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+        var ngaycuoicungtrongtuan = ngaydautientrongtuan.AddDays(6);
+        var danhsachphieuxuat = db.Exports.Where(x => x.Time.Year == ngaydautientrongtuan.Year && x.Time.Month == ngaydautientrongtuan.Month && x.Time.Day >= ngaydautientrongtuan.Day && x.Time.Day <= ngaycuoicungtrongtuan.Day).ToList();
+        return danhsachphieuxuat.Count;
+    }
+    int soluongphieunhaptrongtuan()
+    {
+        var ngaydautientrongtuan = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+        var ngaycuoicungtrongtuan = ngaydautientrongtuan.AddDays(6);
+        var danhsachphieuxuat = db.Imports.Where(x => x.Time.Year == ngaydautientrongtuan.Year && x.Time.Month == ngaydautientrongtuan.Month && x.Time.Day >= ngaydautientrongtuan.Day && x.Time.Day <= ngaycuoicungtrongtuan.Day).ToList();
+        return danhsachphieuxuat.Count;
+    }
+    decimal doanhthuhomnay()
+    {
+        decimal tongdoanhthuhomnay = 0;
+        var Danhsachhomnay = db.Exports.Where(x => x.Time.Year == DateTime.Today.Date.Year && x.Time.Month == DateTime.Today.Date.Month && x.Time.Day == DateTime.Today.Date.Day).ToList();
+        foreach (var item in Danhsachhomnay)
+        {
+            var danhsachchitiet = new List<ExportDetail>();
+            danhsachchitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongdoanhthuhomnay += (chitiet.Price * chitiet.Quantity);
+            }
+        }
+        return tongdoanhthuhomnay;
+    }
+    decimal tongchihomnay()
+    {
+        decimal tongchitieu = 0;
+        var danhsachphieunhap = db.Imports.Where(x => x.Time.Year == DateTime.Today.Date.Year && x.Time.Month == DateTime.Today.Date.Month && x.Time.Day == DateTime.Today.Date.Day).ToList();
+        foreach (var item in danhsachphieunhap)
+        {
+            var danhsachchitiet = new List<ImportDetail>();
+            danhsachchitiet = db.ImportDetails.Where(x => x.ImportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongchitieu += (chitiet.ImportPrice * chitiet.Quantity);
+            }
+        }
+        return tongchitieu;
+    }
+    decimal doanhthuhomqua()
+    {
+        decimal tongdoanhthuhomqua = 0;
+        var homqua = DateTime.Today.AddDays(-1).Date;
+        var Danhsachhomqua = db.Exports.Where(x => x.Time.Year == homqua.Year && x.Time.Month == homqua.Month && x.Time.Day == homqua.Day).ToList();
+        foreach (var item in Danhsachhomqua)
+        {
+            var danhsachchitiet = new List<ExportDetail>();
+            danhsachchitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongdoanhthuhomqua += (chitiet.Price * chitiet.Quantity);
+            }
+        }
+        return tongdoanhthuhomqua;
+    }
+    decimal tongchihomqua()
+    {
+        decimal tongchitieu = 0;
+        var homqua = DateTime.Today.AddDays(-1).Date;
+        var Danhsachhomqua = db.Imports.Where(x => x.Time.Year == homqua.Year && x.Time.Month == homqua.Month && x.Time.Day == homqua.Day).ToList();
+        foreach (var item in Danhsachhomqua)
+        {
+            var danhsachchitiet = new List<ImportDetail>();
+            danhsachchitiet = db.ImportDetails.Where(x => x.ImportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tongchitieu += (chitiet.ImportPrice * chitiet.Quantity);
+            }
+        }
+        return tongchitieu;
+    }
+    decimal doanhthutuannay()
+    {
+        decimal tong = 0;
+        var ngaydautientrongtuan = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+        var ngaycuoicungtrongtuan = ngaydautientrongtuan.AddDays(6);
+        var danhsachphieuxuat = db.Exports.Where(x => x.Time.Year == ngaydautientrongtuan.Year && x.Time.Month == ngaydautientrongtuan.Month && x.Time.Day >= ngaydautientrongtuan.Day && x.Time.Day <= ngaycuoicungtrongtuan.Day).ToList();
+        foreach (var item in danhsachphieuxuat)
+        {
+            var danhsachchitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tong += chitiet.Price * chitiet.Quantity;
+            }
+        }
+        return tong;
+    }
+    decimal tongchituannay()
+    {
+        decimal tong = 0;
+        var ngaydautientrongtuan = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+        var ngaycuoicungtrongtuan = ngaydautientrongtuan.AddDays(6);
+        var danhsachphieuxuat = db.Imports.Where(x => x.Time.Year == ngaydautientrongtuan.Year && x.Time.Month == ngaydautientrongtuan.Month && x.Time.Day >= ngaydautientrongtuan.Day && x.Time.Day <= ngaycuoicungtrongtuan.Day).ToList();
+        foreach (var item in danhsachphieuxuat)
+        {
+            var danhsachchitiet = db.ImportDetails.Where(x => x.ImportCode == item.Code).ToList();
+            foreach (var chitiet in danhsachchitiet)
+            {
+                tong += chitiet.ImportPrice * chitiet.Quantity;
+            }
+        }
+        return tong;
+    }
+    string GetCategoryName(long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var category = db.ProductCategories.Find(id);
+            if (category != null)
+            {
+                return category.Name;
+            }
+            else { return ""; }
+
+        }
+        else
+        {
+            return "";
+        }
+    }
+    string GetUnitName(long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var category = db.Units.Find(id);
+            if (category != null)
+            {
+                return category.Name;
+            }
+            else { return ""; }
+
+        }
+        else
+        {
+            return "";
+        }
+
+    }
+    string GetPackageName(long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var category = db.Packages.Find(id);
+            if (category != null)
+            {
+                return category.Name;
+            }
+            else { return ""; }
+
+        }
+        else
+        {
+            return "";
+        }
+
+    }
+    string GetClass(long quantity, long? quantityAlert)
+    {
+        string classstring = "";
+        if (quantity >= (quantityAlert + quantityAlert / 4))
+        {
+            classstring = "bg-row-success";
+        }
+        else if (quantity >= (quantityAlert - quantityAlert / 4) && quantity < (quantityAlert + quantityAlert / 4))
+        {
+            classstring = "bg-row-warning";
+        }
+        else if (quantity < (quantityAlert - quantityAlert / 4))
+        {
+            classstring = "bg-row-danger";
+        }
+        if (quantityAlert == 0 || quantityAlert == null)
+        {
+            classstring = "";
+        }
+        return classstring;
+    }
+    decimal GetDoanhThuTheoThang(int thang)
+    {
+        decimal doanhthu = 0;
+        var exports = db.Exports.Where(x => x.Time.Year == DateTime.Now.Year && x.Time.Month == thang && x.ExportDelete == false).ToList();
+        foreach (var export in exports)
+        {
+            var listDetail = db.ExportDetails.Where(x => x.ExportCode == export.Code).ToList();
+            foreach (var item in listDetail)
+            {
+                doanhthu += (item.Price * item.Quantity);
+            }
+        }
+        var refunds = db.Refunds.Where(x => x.Time.Year == DateTime.Now.Year && x.Time.Month == thang && x.RefundDelete == false).ToList();
+        foreach (var refund in refunds)
+        {
+            var listDetail = db.RefundDetails.Where(x => x.RefundCode == refund.Code).ToList();
+            foreach (var item in listDetail)
+            {
+                doanhthu -= (item.Price * item.Quantity);
+            }
+        }
+        return doanhthu;
+    }
+    decimal GetChiTieuTheoThang(int thang)
+    {
+        decimal doanhthu = 0;
+        var imports = db.Imports.Where(x => x.Time.Year == DateTime.Now.Year && x.Time.Month == thang && x.ImportDelete == false).ToList();
+        foreach (var import in imports)
+        {
+            var listDetail = db.ImportDetails.Where(x => x.ImportCode == import.Code).ToList();
+            foreach (var item in listDetail)
+            {
+                doanhthu += (item.ImportPrice * item.Quantity);
+            }
+        }
+        return doanhthu;
+    }
+    decimal GetLoiNhuanTheoThang(int thang)
+    {
+        decimal doanhthu = 0;
+        var exports = db.Exports.Where(x => x.Time.Year == DateTime.Now.Year && x.Time.Month == thang && x.ExportDelete == false).ToList();
+        foreach (var export in exports)
+        {
+            var listDetail = db.ExportDetails.Where(x => x.ExportCode == export.Code).ToList();
+            foreach (var item in listDetail)
+            {
+                var product = db.Products.Where(x => x.Code == item.ProductCode).FirstOrDefault();
+                doanhthu += (product.ImportPrice * item.Quantity);
+            }
+        }
+        var refunds = db.Refunds.Where(x => x.Time.Year == DateTime.Now.Year && x.Time.Month == thang && x.RefundDelete == false).ToList();
+        foreach (var refund in refunds)
+        {
+            var listDetail = db.RefundDetails.Where(x => x.RefundCode == refund.Code).ToList();
+            foreach (var item in listDetail)
+            {
+                var product = db.Products.Where(x => x.Code == item.ProductCode).FirstOrDefault();
+                doanhthu -= (product.ImportPrice * item.Quantity);
+            }
+        }
+        return doanhthu;
+    }
+    string addModelBussiness()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append($"var doanhthutheothang = [{GetDoanhThuTheoThang(1)},{GetDoanhThuTheoThang(2)},{GetDoanhThuTheoThang(3)},{GetDoanhThuTheoThang(4)},{GetDoanhThuTheoThang(5)},{GetDoanhThuTheoThang(6)},{GetDoanhThuTheoThang(7)},{GetDoanhThuTheoThang(8)},{GetDoanhThuTheoThang(9)},{GetDoanhThuTheoThang(10)},{GetDoanhThuTheoThang(11)},{GetDoanhThuTheoThang(12)}];");
+        sb.Append($"var chitieutheothang=[{GetChiTieuTheoThang(1)},{GetChiTieuTheoThang(2)},{GetChiTieuTheoThang(3)},{GetChiTieuTheoThang(4)},{GetChiTieuTheoThang(5)},{GetChiTieuTheoThang(6)},{GetChiTieuTheoThang(7)},{GetChiTieuTheoThang(8)},{GetChiTieuTheoThang(9)},{GetChiTieuTheoThang(10)},{GetChiTieuTheoThang(11)},{GetChiTieuTheoThang(12)}];");
+        sb.Append($"var loinhuantheothang = [{GetLoiNhuanTheoThang(1)},{GetLoiNhuanTheoThang(2)},{GetLoiNhuanTheoThang(3)},{GetLoiNhuanTheoThang(4)},{GetLoiNhuanTheoThang(5)},{GetLoiNhuanTheoThang(6)},{GetLoiNhuanTheoThang(7)},{GetLoiNhuanTheoThang(8)},{GetLoiNhuanTheoThang(9)},{GetLoiNhuanTheoThang(10)},{GetLoiNhuanTheoThang(11)},{GetLoiNhuanTheoThang(12)}];");
+        sb.Append("</script>");
+        return sb.ToString();
+    }
+}
+@if (user.RoleID == 1)
+{
+    <div class="row">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="card">
+                <div class="card-header p-3 pt-2">
+                    <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
+                        <i class="material-icons opacity-10">today</i>
+                    </div>
+                    <div class="text-end pt-1">
+                        <p class="text-sm mb-0 text-capitalize"></p>
+                        <h4 class="mb-0">Hôm Nay</h4>
+                    </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng phiếu xuất: <span class="text-success text-sm font-weight-bolder">@soluongphieuxuathomnay()</span> <span class="text-warning text-sm font-weight-bolder">(@soluongphieuxuatchuaduyethomnay() Chưa duyệt)</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng phiếu nhập: <span class="text-success text-sm font-weight-bolder">@soluongphieunhaphomnay()</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng doanh thu: <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(doanhthuhomnay().ToString()) VNĐ</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng tiền nhập hàng: <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(tongchihomnay().ToString()) VNĐ</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="card">
+                <div class="card-header p-3 pt-2">
+                    <div class="icon icon-lg icon-shape bg-gradient-primary shadow-dark text-center border-radius-xl mt-n4 position-absolute">
+                        <i class="material-icons opacity-10">event</i>
+                    </div>
+                    <div class="text-end pt-1">
+                        <p class="text-sm mb-0 text-capitalize"></p>
+                        <h4 class="mb-0">Hôm Qua</h4>
+                    </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng phiếu xuất: <span class="text-success text-sm font-weight-bolder">@soluongphieuxuathomqua()</span> <span class="text-warning text-sm font-weight-bolder">(@soluongphieuxuatchuaduyethomqua() Chưa duyệt)</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng phiếu nhập: <span class="text-success text-sm font-weight-bolder">@soluongphieunhaphomqua()</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng doanh thu: <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(doanhthuhomqua().ToString()) VNĐ</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng tiền nhập hàng: <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(tongchihomqua().ToString()) VNĐ</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="card">
+                <div class="card-header p-3 pt-2">
+                    <div class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl mt-n4 position-absolute">
+                        <i class="material-icons opacity-10">date_range</i>
+                    </div>
+                    <div class="text-end pt-1">
+                        <h4 class="mb-0">Doanh Thu Theo Tuần</h4>
+                    </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng phiếu xuất: <span class="text-success text-sm font-weight-bolder">@soluongphieuxuattrongtuan()</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng phiếu nhập: <span class="text-success text-sm font-weight-bolder">@soluongphieunhaptrongtuan()</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng doanh thu: <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(doanhthutuannay().ToString()) VNĐ</span></p>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    <p class="mb-0">Tổng tiền nhập hàng: <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(tongchituannay().ToString()) VNĐ</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="card">
+                <div class="card-header p-3 pt-2">
+                    <div class="icon icon-lg icon-shape bg-gradient-info shadow-info text-center border-radius-xl mt-n4 position-absolute">
+                        <i class="material-icons opacity-10">show_chart</i>
+                    </div>
+                    <div class="text-end pt-1">
+                        <h4 class="mb-0">Biến Động Số Dư</h4>
+                    </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    @if (sosanhdoanhthutheongay() > 0)
+                    {
+                        <p class="mb-0">Tổng doanh thu: <span class="text-success text-sm font-weight-bolder">+@InventoryManagerment.Common.Functions.NumberToMoney(sosanhdoanhthutheongay().ToString()) VNĐ</span> so với ngày hôm qua</p>
+                    }
+                    else
+                    {
+                        <p class="mb-0">Tổng doanh thu: <span class="text-danger text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(sosanhdoanhthutheongay().ToString()) VNĐ</span> so với ngày hôm qua</p>
+                    }
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-3">
+                    @if (sosanhchitieutheongay() > 0)
+                    {
+                        <p class="mb-0">Tổng tiền nhập hàng: nhiều hơn <span class="text-danger text-sm font-weight-bolder">+@InventoryManagerment.Common.Functions.NumberToMoney(sosanhchitieutheongay().ToString()) VNĐ</span> so với ngày hôm qua</p>
+                    }
+                    else
+                    {
+                        <p class="mb-0">Tổng tiền nhập hàng: ít hơn <span class="text-success text-sm font-weight-bolder">@InventoryManagerment.Common.Functions.NumberToMoney(sosanhchitieutheongay().ToString()) VNĐ</span> so với ngày hôm qua</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:25px;margin-bottom:25px;"></div>
+    <div class="row">
+        <div class="col-xl-6 col-sm-6 mb-xl-0 mb-4">
+            <div class="card">
+                <div class="card-header p-3 pt-2">
+                    <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
+                        <i class="material-icons opacity-10">bar_chart</i>
+                    </div>
+                    <div class="text-end pt-1">
+                        <p class="text-sm mb-0 text-capitalize"></p>
+                        <h4 class="mb-0">Biểu đồ doanh thu năm @DateTime.Now.Year</h4>
+                    </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                    <div class="card-body p-3">
+                        <div class="chart">
+                            <canvas id="myChart" class="chart-canvas" style="height:300px"></canvas>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <style>
+        .bg-row-success {
+            color: white !important;
+            background-color: #bce2be;
+        }
+
+        .bg-row-danger {
+            color: white !important;
+            background-color: #fcd3d0;
+        }
+
+        .bg-row-warning {
+            color: white !important;
+            background-color: #ffd59f;
+        }
+    </style>
+    <div class="row" id="productList">
+        <div class="col-12">
+            <div class="card my-4">
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                        <div class="col-12">
+                            <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách sản phẩm trong kho</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pb-2">
+                    <div class="px-2 mb-1">
+                        <button type="button" class="btn bg-gradient-primary" data-bs-toggle="modal" data-bs-target="#searchModal">
+                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                            <span class="btn-inner--text">Tìm kiếm</span>
+                        </button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm sản phẩm</h5>
+                                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        @using (Html.BeginForm("Index", "Home", method: FormMethod.Get))
+                                        {
+                                            <div class="input-group mb-3">
+                                                <div class="input-group input-group-static mb-4">
+                                                    <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                                </div>
+                                                <div class="input-group input-group-static mb-4">
+                                                    <label for="ActionKey" class="ms-0">Loại Sản Phẩm</label>
+                                                    <select class="form-control" name="typeProduct" id="typeProduct" value="@ViewBag.typeProduct">
+                                                        <option value="0">Tất cả</option>
+                                                        @foreach (var item in listCategory)
+                                                        {
+                                                            <option value="@item.ID">@item.Name</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="input-group input-group-static mb-4">
+                                                    <select name="pageSize" class="form-control">
+                                                        <option value="10">Số dòng hiển thị</option>
+                                                        @for (int a = 15; a <= 100; a += 5)
+                                                        {
+                                                            <option value="@a">@a</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                                                <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                                                <span class="btn-inner--text">Tìm kiếm</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đơn vị tính</th>
+                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá bán</th>
+                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng tồn</th>
+                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đóng gói</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr class="@GetClass(item.Quantity,item.QuantityAlert)" id="row_@item.ID">
+                                        <td>
+                                            <div class="d-flex px-2 py-1">
+                                                <div class="d-flex flex-column justify-content-center">
+                                                    <h6 class="mb-0 text-sm">@item.Name</h6>
+                                                    @if (item.CategoryID.HasValue)
+                                                    {
+                                                        <p class="text-xs text-secondary mb-0">@GetCategoryName(item.CategoryID)</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <span class="text-secondary text-xs font-weight-bold">@GetUnitName(item.UnitID)</span>
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <span class="text-secondary text-xs font-weight-bold">@Functions.NumberToMoney(item.Price.ToString())</span>
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <span class="text-secondary text-xs font-weight-bold">@item.Quantity</span>
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <span class="text-secondary text-xs font-weight-bold">@GetPackageName(item.PackageID)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div style="text-align:center;margin-top:15px;">
+                            <div style="display:inline-block" id="listPagination">
+                                @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString }))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@section jsFooter{
+    @Html.Raw(addListProduct())
+    @Html.Raw(addModelBussiness())
+    <script>
+        $(document).ready(function () {
+            AutoComplete(dataProduct, $("#searchString"));
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        function AutoComplete(dataProduct, element) {
+            element.autocomplete({
+                source: dataProduct,
+                minLength: 0,
+            },
+                {
+                    autoFocus: true,
+                    delay: 0,
+                });
+        }
+        addClasslist();
+        var xValues = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+        new Chart("myChart", {
+            type: "line",
+            data: {
+                labels: xValues,
+                datasets: [{
+                    data: chitieutheothang,
+                    borderColor: "red",
+                    label: "Tổng tiền nhập hàng:",
+                    fill: false
+                }, {
+                    data: loinhuantheothang,
+                    label: "Lợi nhuận",
+                    borderColor: "green",
+                    fill: true
+                }, {
+                    data: doanhthutheothang,
+                    label: "Doanh thu",
+                    borderColor: "blue",
+                    fill: false
+                }]
+            },
+            options: {
+                legend: { display: true }
+            }
+        });
+    </script>
+}
+

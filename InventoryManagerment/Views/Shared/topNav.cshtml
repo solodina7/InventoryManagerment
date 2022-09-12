@@ -1,0 +1,55 @@
+﻿@{
+    var user = (InventoryManagerment.Models.EF.User)Session[InventoryManagerment.Common.CommonConstants.USER_SESSION];
+}
+<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 border-radius-xl shadow-none" id="navbarBlur" data-scroll="true">
+    <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+            <h6 class="font-weight-bolder mb-0">@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+            <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+            </div>
+            <ul class="navbar-nav  justify-content-end">
+                <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+                    <a href="javascript:;" class="nav-link p-0 text-body" id="iconNavbarSidenav">
+                        <div class="sidenav-toggler-inner">
+                            <i class="sidenav-toggler-line"></i>
+                            <i class="sidenav-toggler-line"></i>
+                            <i class="sidenav-toggler-line"></i>
+                        </div>
+                    </a>
+                </li>
+                <li class="nav-item d-xl-none ps-3 d-flex align-items-center"> </li>
+                <li class="nav-item d-flex align-items-center">
+                    @if (user == null)
+                    {
+                        <a href="/Login" class="nav-link font-weight-bold px-0 text-body">
+                            <i class="fa fa-user me-sm-1"></i>
+                            <span class="d-sm-inline d-none">Đăng nhập</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="dropdown">  
+                            <a style="cursor:pointer;" class="dropdown-toggle" data-bs-toggle="dropdown" id="userdropdown" aria-expanded="false">
+                                <i class="fa fa-user me-sm-1"></i>
+                                @user.Name
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="userdropdown">
+                                @if (user.RoleID == 1)
+                                {
+                                    <li class="dropdown-item"><a href="/User">Quản lý người dùng</a></li>
+                                    <li class="dropdown-item"><a href="/Role">Quản lý chức vụ</a></li>
+                                    <li class="dropdown-item"><a href="/History">Lịch sử hệ thống</a></li>
+                                    <li class="dropdown-item"><a href="/History/Receipt">Lịch sử các phiếu</a></li>
+                                    <li class="dropdown-item"><hr class="horizontal dark my-1"></li>
+                                }
+                                <li class="dropdown-item"><a href="/Login/Logout">Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    }
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,381 @@
+﻿@model InventoryManagerment.Models.EF.ImportForm
+
+@{
+    var listUnit = (List<InventoryManagerment.Models.EF.Unit>)ViewBag.Unit;
+    var listProduct = (List<InventoryManagerment.Models.EF.Product>)ViewBag.Product;
+    var db = new InventoryManagerment.Models.EF.InventoryDbContext();
+    var listSupplier = db.Suppliers.ToList();
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string GetProductName(string code)
+    {
+        var product = db.Products.Where(x => x.Code == code).FirstOrDefault();
+        return product.Name;
+    }
+    string GetUnitName(long id)
+    {
+        if (id == 0)
+        {
+            return "Chưa set đơn vị tính";
+        }
+        else
+        {
+            var product = db.Units.Find(id);
+            return product.Name;
+        }
+    }
+    string addListProduct()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataProduct = new Array();");
+        foreach (var item in listProduct)
+        {
+            sb.Append($" dataProduct.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string addProductModel()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var listProduct = new Array();");
+        foreach (var item in listProduct)
+        {
+            decimal price = 0;
+            var listProductSupply = db.SupplyDetails.Where(x => x.ProductCode == item.Code).ToList();
+            foreach (var items in listProductSupply)
+            {
+                price += items.Price;
+            }
+            sb.Append(" var ModelProduct = {};");
+            sb.Append($" ModelProduct.Name ='{item.Name}';");
+            sb.Append($" ModelProduct.CodeProduct='{item.Code}';");
+            sb.Append($" ModelProduct.Quantity='{item.Quantity}';");
+            if (listProductSupply.Count != 0)
+            {
+                sb.Append($" ModelProduct.Price ='{Math.Round((price / listProductSupply.Count), 0)}';");
+            }
+            else
+            {
+                sb.Append($" ModelProduct.Price ='{item.Price}';");
+            }
+            sb.Append($" ModelProduct.UnitID ='{item.UnitID}';");
+            sb.Append($" listProduct.push(ModelProduct);");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+}
+<div class="row">
+    <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
+    <div class="input-group input-group-static my-3">
+        <label> Mã phiếu nhập</label>
+        <input disabled value="@Model.Import.Code" type="text" id="txtCode" name="txtCode" class="form-control" />
+    </div>
+    <div class="input-group input-group-static my-3">
+        <label>Ngày nhập</label>
+        <input disabled type="datetime-local" id="txtTime" name="txtTime" class="form-control" />
+    </div>
+    <div class="input-group input-group-static my-3">
+        <label>Nhà cung cấp</label>
+        <select disabled id="txtSupplier" class="form-control">
+            <option value="chuachon">Chọn nhà cung cấp</option>
+            @foreach (var item in listSupplier)
+            {
+                <option value="@item.ID">@item.Name</option>
+            }
+        </select>
+    </div>
+    <div class="input-group input-group-static my-3">
+        <label>Ghi chú</label>
+        <textarea disabled id="txtNote" name="txtNote" class="form-control" rows="5" placeholder="Nhập ghi chú"></textarea>
+    </div>
+</div>
+<div class="row">
+    
+</div>
+<div class="row">
+    <h6>Danh sách sản phẩm</h6>
+    <div class="card-body px-0 pb-2">
+        <div class="table-responsive p-0    ">
+            <table class="table align-items-center mb-0" id="tableProductRecord">
+                <thead>
+                    <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Giá nhập</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Số lượng</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Đơn vị tính</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Thành tiền</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.importDetails)
+                    {
+                        <tr>
+                            <td class="text-sm" id="@item.ProductCode">@GetProductName(item.ProductCode)</td>
+                            <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney(item.ImportPrice.ToString())</td>
+                            <td class="align-middle text-center text-sm">@item.Quantity</td>
+                            <td class="align-middle text-center text-sm" id="@item.UnitID">@GetUnitName(item.UnitID)</td>
+                            <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney((item.Quantity * item.ImportPrice).ToString())</td>
+                            <td><a class="editproduct" href="javascript:;" onclick="editproduct(this)"><i class="material-icons">edit</i></a><a href="javascript:;" onclick="this.closest('tr').remove()"><i class="material-icons">delete</i></a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section jsFooter{
+    @Html.Raw(addListProduct());
+    <script>
+        $(document).ready(function () {
+            $("#btnAddProduct").click(function () {
+                AddProductRecord();
+            });
+            $("#btnSave").click(function () {
+                SaveProduct();
+            });
+            setTime();
+            SetValue();
+            AutoComplete(dataProduct, $('#txtProductName'));
+            $('#txtQuantity').focusout(function () {
+                var text = $('#txtQuantity').val();
+                if (!$.isNumeric(text)) {
+                    $('#txtQuantity').val("");
+                }
+            });
+            $('#txtPrice').focusout(function () {
+                var text = $('#txtPrice').val();
+                if ($.isNumeric(text) || text.indexOf(',') != -1 || text == '') {
+                    $('#txtPrice').val(formatNumber(text, '.', ','));
+                }
+                else if (!$.isNumeric(text)) {
+                    $('#txtPrice').val("");
+                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập số</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+            $('#txtProductName').focusout(function () {
+                var text = $('#txtProductName').val();
+                var price = "0";
+                var unitid = "null";
+                if (jQuery.inArray(text, dataProduct) != -1 || text == "") {
+                    $('#txtProductName').val(text);
+                    if ($('#txtPrice').val() == "" || $('#txtPrice').val() != "") {
+                        var code = CheckName(text, listProduct);
+                        listProduct.forEach(element => {
+                            if (element.CodeProduct == code) {
+                                price = element.Price;
+                                unitid = element.UnitID
+                            }
+                        });
+                        $('#txtPrice').val(formatNumber(price, '.', ','))
+                    }
+                    $('#txtUnit').val(unitid);
+                    $('#txtQuantity').focus();
+                }
+                else if (jQuery.inArray(text, dataProduct) == -1) {
+                    $('#txtProductName').val("");
+                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này vui lòng thử lại</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+        });
+        function editproduct(element) {
+            var row = $(element).closest("tr");
+            var name = $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(5) a:eq(0)').find('i').html();
+            if (name == 'edit') {
+                var price = $('#tableProductRecord tbody tr:eq(' + row.index() + ')').find('td:eq(1)').html();
+                var quantity = $('#tableProductRecord tbody tr:eq(' + row.index() + ')').find('td:eq(2)').html();
+                var inputPrice = "<input type='text' value=" + price.replace(',', '') + ">";
+                var inputQuantity = "<input type='number' value=" + quantity + ">";
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').html("");
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(2)').html("");
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').append(inputPrice);
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(2)').append(inputQuantity);
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(5)').find('a:eq(0)').html('<i class="material-icons">done</i>');
+            }
+            else {
+                var price = $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').val();
+                var quantity = $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').val();
+                if (!$.isNumeric(price)) {
+                    $.alert("Vui lòng nhập số")
+                    $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').focus();
+                    return;
+                }
+                var total = price.replace(',', '') * quantity;
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').remove();
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').remove();
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').html(formatNumber(price, '.', ','));
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(2)').html(quantity);
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(4)').html(formatNumber(total, '.', ','));
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(5)').find('a:eq(0)').html('<i class="material-icons">edit</i>');
+            }
+        };
+        function GetName(text, listProduct) {
+            var key = "";
+            listProduct.forEach(ModelProduct => {
+                if (text == ModelProduct.Name) {
+                    key = ModelProduct.CodeProduct;
+                }
+            });
+            return key;
+        }
+        function CheckName(text, list) {
+            var key = "";
+            list.forEach(ModelProduct => {
+                if (text == ModelProduct.Name) {
+                    key = ModelProduct.CodeProduct;
+                }
+            });
+            return key;
+        };
+        function AutoComplete(dataProduct, element) {
+            element.autocomplete({
+                source: dataProduct,
+                minLength: 0,
+            },
+                {
+                    autoFocus: true,
+                    delay: 0,
+                });
+        }
+        function SetValue(){
+            $('#txtSupplier').val("@Model.Import.SupplierID");
+            $('#txtNote').val("@Model.Import.Note");
+        }
+        function setTime() {
+            const dateControl = document.querySelector('input[type="datetime-local"]');
+            dateControl.value = '@Model.Import.Time.ToString("yyyy-MM-ddThh:mm")';
+        }
+        function formatNumber(nStr, decSeperate, groupSeperate) {
+            nStr += '';
+            x = nStr.split(decSeperate);
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + groupSeperate + '$2');
+            }
+            return x1 + x2;
+        }
+        function AddProductRecord() {
+            if ($('#txtProductName').val().length == 0) {
+                $.alert('Vui lòng nhập sản phẩm');
+                $('#txtProductName').focus();
+                return;
+            }
+            if ($("#txtPrice").val().length == 0) {
+                $.alert('Vui lòng nhập giá sản phẩm');
+                $('#txtProductCode').focus();
+                return;
+            }
+            if ($("#txtQuantity").val().length == 0) {
+                $.alert('Vui lòng nhập số lượng');
+                $('#txtQuantity').focus();
+                return
+            }
+            if ($("#txtUnit option:selected").val() == 'null') {
+                $.alert('Vui lòng chọn đơn vị tính');
+                $('#txtUnit').focus();
+                return;
+            }
+            var temp = 0;
+            $("#tableProductRecord tbody tr").each(function () {
+                var name = $("#txtProductName").val();
+                if ($(this).find("td:eq(0)").html() == name) {
+                    temp += 1;
+                }
+            });
+            if (temp > 0) {
+                $.alert('Sản phẩm này đã tồn tại vui lòng kiểm tra lại');
+                $('#txtProductName').focus();
+                return;
+            }
+            var code = $('#txtProductName').val();
+            var productCode = GetName(code, listProduct);
+            var price = $("#txtPrice").val();
+            var quantity = $("#txtQuantity").val();
+            var total = formatNumber((price.replace(',', '') * quantity).toString(), '.', ',');
+            var unit = $("#txtUnit option:selected").text();
+            var unitID = $("#txtUnit option:selected").val();
+            var productRecord = "<tr><td class=\"text-sm\"  id=" + productCode + ">" + code + "</td>" +
+                "<td class=\"align-middle text-center text-sm\">" + formatNumber(price.toString(), '.', ',') + "</td>" +
+                "<td class=\"align-middle text-center text-sm\">" + quantity + "</td>" +
+                "<td class=\"align-middle text-center text-sm\" id=" + unitID + ">" + unit + "</td>" +
+                "<td class=\"align-middle text-center text-sm\">" + total + "</td>" +
+                "<td><a class=\"editproduct\" href =\"javascript:;\" onclick=\"editproduct(this)\"><i class=\"material-icons\">edit</i></a>" +
+                "<a href=\"javascript:;\" onclick=\"this.closest('tr').remove()\"><i class=\"material-icons\">delete</i></a></td>" +
+                +"</tr>";
+            $("#tableProductRecord tbody").last().append(productRecord);
+            $("#txtPrice").val("");
+            $("#txtQuantity").val("");
+            $("#txtUnit").prop('selectedIndex', 0);
+            $("#txtProductName").val("");
+        };
+        function SaveProduct() {
+            var listProduct = new Array();
+            var table = $('#tableProductRecord tbody tr');
+            var ImportCode = $('#txtCode').val();
+            table.each(function () {
+                var Code = $(this).find("td:eq(0)").attr('id');
+                var Price = $(this).find("td:eq(1)").text();
+                var Quantity = $(this).find("td:eq(2)").text();
+                var UnitID = $(this).find("td:eq(3)").attr('id');
+                var Time = $("#txtTime").val();
+                var SupplierID = $("#txtSupplier option:selected").val();
+                var Note = $("#txtNote").val();
+
+                var ProductModel = {};
+                ProductModel.Code = ImportCode;
+                ProductModel.Price = Price;
+                ProductModel.Quantity = Quantity;
+                ProductModel.ProductCode = Code;
+                ProductModel.Time = Time;
+                ProductModel.SupplierID = SupplierID;
+                ProductModel.Note = Note;
+                ProductModel.UnitID = UnitID;
+                listProduct.push(ProductModel);
+            });
+
+            if ($('#txtSupplier option:selected').val() == 'chuachon') {
+                $.alert('Vui lòng chọn nhà cung cấp');
+                return;
+            }
+            if (listProduct.length == 0) {
+                $.alert('Vui lòng thêm ít nhất một sản phẩm');
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: 'application/json; charset=utf=8',
+                url: '/Import/Edit',
+                data: JSON.stringify(listProduct),
+                success: function () {
+                    //var obj = $.alert({
+                    //    title: 'Thông báo',
+                    //    content: 'Cập nhật phiếu xuất thành công',
+                    //});
+                    //setTimeout(function () {
+                    //    obj.close();
+                    //}, 2000);
+                    location.reload(true);
+                },
+                error: function () {
+                    var obj = $.alert({
+                        title: 'Thông báo',
+                        content: 'Cập nhật phiếu nhập thất bại',
+                    });
+                    setTimeout(function () {
+                        obj.close();
+                    }, 2000);
+                }
+            })
+        }
+    </script>
+    @Html.Raw(addProductModel());
+}

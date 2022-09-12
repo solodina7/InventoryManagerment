@@ -1,0 +1,137 @@
+﻿@model InventoryManagerment.Models.SupplierInformation
+
+@{
+    ViewBag.Title = "Detail";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string GetProductName(string code)
+    {
+        InventoryManagerment.Models.EF.InventoryDbContext db = new InventoryManagerment.Models.EF.InventoryDbContext();
+        var product = db.Products.Where(x => x.Code == code).FirstOrDefault();
+        if(product == null)
+        {
+            return "";
+        }
+        else
+        {
+            return product.Name;
+        }
+
+    }
+    string GetProductCategoryName(string productCode)
+    {
+        InventoryManagerment.Models.EF.InventoryDbContext db = new InventoryManagerment.Models.EF.InventoryDbContext();
+        var product = db.Products.Where(x => x.Code == productCode).First();
+        var category = db.ProductCategories.Find(product.CategoryID);
+
+        if(category == null)
+        {
+            return "";
+        }
+        return category.Name;
+    }
+    string GetUnitName(long id)
+    {
+        if(id == 0)
+        {
+            return "";
+        }
+        InventoryManagerment.Models.EF.InventoryDbContext db = new InventoryManagerment.Models.EF.InventoryDbContext();
+        var unit = db.Units.Find(id);
+        return unit.Name;
+    }
+}
+<div class="page-header min-height-300 border-radius-xl mt-4" style="background-image: url('https://images.unsplash.com/photo-1531512073830-ba890ca4eba2?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=1920&amp;q=80');">
+    <span class="mask  bg-gradient-primary  opacity-6"></span>
+</div>
+<div class="card card-body mx-3 mx-md-4 mt-n6">
+    <div class="row gx-4 mb-2">
+        <div class="col-auto">
+            <div class="avatar avatar-xl position-relative">
+                <img src="~/assets/img/bruce-mars.jpg" alt="profile_image" class="w-100 border-radius-lg shadow-sm">
+            </div>
+        </div>
+        <div class="col-auto my-auto">
+            <div class="h-100">
+                <h5 class="mb-1">
+                    @Model.supllier.Name <a href="/Supplier/EditSupplier/@Model.supllier.ID"><i class="material-icons text-lg me-2">edit_profile</i></a>
+                </h5>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 my-sm-auto ms-sm-auto me-sm-0 mx-auto mt-3">
+        </div>
+    </div>
+    <div>
+        <div class="col-md-12 mt-4">
+            <div class="card">
+                <div class="card-header pb-0 px-3">
+                    <h6 class="mb-0">Sản Phẩm Cung Cấp</h6>
+                </div>
+                <div class="card-body pt-4 p-3">
+                    @if (Model.listSupply.Count == 0) 
+                    { 
+                        <h6>Chưa có sản phẩm nào của nhà cung cấp này.</h6>
+                        <h6><a href="/Supplier/CreateSupply/@Model.supllier.ID" class="btn btn-success">Thêm ngay</a></h6>
+                    }
+                    <ul class="list-group" id="tbl_product">
+                        @foreach (var item in Model.listSupply)
+                        {
+                            <li id="row_@item.ID" class="list-group-item border-0 d-flex p-4 mb-2 bg-gray-100 border-radius-lg">
+                                <div class="d-flex flex-column">
+                                    <h6 class="mb-3 text-sm">@GetProductName(item.ProductCode)</h6>
+                                    <span class="mb-2 text-xs">Loại sản phẩm: <span class="text-dark font-weight-bold ms-sm-2">@GetProductCategoryName(item.ProductCode)</span></span>
+                                    <span class="mb-2 text-xs">Giá tiền (VNĐ/@GetUnitName(item.UnitID)): <span class="text-dark ms-sm-2 font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(item.Price.ToString()) / @GetUnitName(item.UnitID)</span></span>
+                                    <span class="text-xs">Mã sản phẩm: <span class="text-dark ms-sm-2 font-weight-bold">@item.ProductCode</span></span>
+                                </div>
+                                <div class="ms-auto text-end">                                   
+                                    <a class="btn btn-link text-danger text-gradient px-3 mb-0 delete" href="javascript:;" id="@item.ID"><i class="material-icons">delete</i>Xóa sản phẩm</a>
+                                    <a class="btn btn-link text-dark px-3 mb-0" href="/Supplier/EditSupply/@item.ID"><i class="material-icons text-sm me-2">edit</i>Chỉnh sửa</a>                                    
+                                </div>
+                            </li>
+                        }
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section jsFooter{
+<script>
+    $(document).ready(function () {
+        $('#tbl_product li  div a.delete').click(function () {
+            var id = $(this).attr('id');
+            $.confirm({
+                title: 'Thông báo',
+                content: 'Bạn có chắc muốn sản phẩm này ?',
+                buttons: {
+                    confirm:
+                    {
+                        text: 'Đồng ý',
+                        action: function () {
+                            var row = '#row_' + id;
+                            $.ajax({
+                                type: "POST",
+                                url: "/Supplier/DeleteSupply/",
+                                data: JSON.stringify({ id: id }),
+                                contentType: "application/json; charset=utf8",
+                                success: function () {
+                                    $.alert('Xóa thành công');
+                                    $(row).remove();
+                                },
+                                error: function () {
+                                    $.alert('Xóa thất bại');
+                                }
+                            });
+                        }
+                    },
+                    cancel: {
+                        text: 'Hủy',
+                        action: function () {
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
+}

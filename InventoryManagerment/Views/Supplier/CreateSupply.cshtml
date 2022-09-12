@@ -1,0 +1,36 @@
+﻿@model InventoryManagerment.Models.EF.SupplyDetail
+<div class="row">
+    @using (Html.BeginForm("CreateSupply", "Supplier", method: FormMethod.Post))
+    {
+        @Html.HiddenFor(model => model.SupplierID)
+
+        <div class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.ProductCode)
+            @Html.DropDownListFor(model => model.ProductCode, null, "Chọn sản phẩm cung cấp", new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.ProductCode, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.UnitID)
+            @Html.DropDownListFor(model => model.UnitID, null, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button id="btnSend" type="submit" value="Create" class="btn btn-success">Thêm sản phẩm nhà cung cấp</button>
+            </div>
+        </div>
+    }
+    <div>
+        <a href="javascript:;" onclick="history.back()">Quay trở lại</a>
+    </div>
+</div>
+@section jsFooter{
+    <script>
+        $(document).ready(function () {
+            $('#btnSend').on('click', function () {
+
+            });
+        });
+    </script>
+}

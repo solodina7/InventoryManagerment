@@ -1,0 +1,307 @@
+﻿@using PagedList.Mvc;
+@model PagedList.IPagedList<InventoryManagerment.Models.EF.Product>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    InventoryManagerment.Models.EF.InventoryDbContext db = new InventoryManagerment.Models.EF.InventoryDbContext();
+    var listProduct = db.Products.ToList();
+    var listCategory = db.ProductCategories.ToList();
+    string addListProduct()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataProduct = new Array();");
+        foreach (var item in listProduct)
+        {
+            sb.Append($" dataProduct.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string GetCategoryName(long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var category = db.ProductCategories.Find(id);
+            if (category != null)
+            {
+                return category.Name;
+            }
+            else { return ""; }
+
+        }
+        else
+        {
+            return "";
+        }
+    }
+    string GetUnitName(long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var category = db.Units.Find(id);
+            if (category != null)
+            {
+                return category.Name;
+            }
+            else { return ""; }
+
+        }
+        else
+        {
+            return "";
+        }
+
+    }
+    string GetPackageName(long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var category = db.Packages.Find(id);
+            if (category != null)
+            {
+                return category.Name;
+            }
+            else { return ""; }
+
+        }
+        else
+        {
+            return "";
+        }
+
+    }
+    string GetClass(long quantity,long? quantityAlert)
+    {
+        string classstring = "";
+        if(quantity >= (quantityAlert+quantityAlert/4))
+        {
+            classstring = "bg-row-success";
+        }
+        else if(quantity >= (quantityAlert - quantityAlert/4) && quantity < (quantityAlert + quantityAlert / 4))
+        {
+            classstring = "bg-row-warning";
+        }
+        else if (quantity < (quantityAlert-quantityAlert/4))
+        {
+            classstring = "bg-row-danger";
+        }
+        if(quantityAlert == 0 || quantityAlert == null)
+        {
+            classstring = "";
+        }
+        return classstring;
+    }
+    string getnamesupplier(long id)
+    {
+        var supplier = db.Suppliers.Find(id);
+        return supplier.Name;
+    }
+    string GetSupplier(string productCode)
+    {
+        string chuoi = "";
+        var listncc = db.SupplyDetails.Where(x => x.ProductCode == productCode).ToList();
+        if (listncc.Count == 0)
+        {
+            chuoi="";
+        }
+        else if(listncc.Count == 1)
+        {
+            chuoi = getnamesupplier(listncc.First().SupplierID);
+        }
+        else if (listncc.Count > 1)
+        {
+            for (int i = 0; i < listncc.Count; i++)
+            {
+                if (i == 0)
+                {
+                    chuoi += getnamesupplier(listncc[i].SupplierID);
+                }
+                else if(i>0)
+                {
+                    chuoi += ", " + getnamesupplier(listncc[i].SupplierID);
+                }
+            }
+        }
+        return chuoi;
+    }
+    string GetPriceImport(string code)
+    {
+        var obj = db.SupplyDetails.Where(x => x.ProductCode == code).ToList();
+        if(obj.Count == 0)
+        {
+            return "Chưa có giá";
+        }
+        else
+        {
+            decimal gia = 0;
+            foreach(var item in obj)
+            {
+                gia += item.Price;
+            }
+            return InventoryManagerment.Common.Functions.NumberToMoney(Math.Round((gia/obj.Count),0).ToString()) + " VNĐ";
+        }
+    }
+}
+<style>
+    .bg-row-success {
+        color: white !important;
+        background-color: #bce2be;
+    }
+    .bg-row-danger {
+        color: white !important;
+        background-color: #fcd3d0;
+    }
+    .bg-row-warning {
+        color: white !important;
+        background-color: #ffd59f;
+    }
+</style>
+<div class="row" id="productList">
+    <div class="col-12">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                    <div class="col-6">
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách sản phẩm trong kho</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <div class="px-2 mb-1">
+                    <!-- Modal -->
+                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm sản phẩm</h5>
+                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    @using (Html.BeginForm("Index", "Stock", method: FormMethod.Get))
+                                    {
+                                    <div class="input-group mb-3">
+                                        <div class="input-group input-group-static mb-4">
+                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <label for="ActionKey" class="ms-0">Loại Sản Phẩm</label>
+                                            <select class="form-control" name="typeProduct" id="typeProduct" value="@ViewBag.typeProduct">
+                                                <option value="0">Tất cả</option>
+                                                @foreach (var item in listCategory)
+                                                {
+                                                    <option value="@item.ID">@item.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <select name="pageSize" class="form-control">
+                                                <option value="10">Số dòng hiển thị</option>
+                                                @for (int a = 15; a <= 100; a += 5)
+                                                {
+                                                    <option value="@a">@a</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                                            <span class="btn-inner--text">Tìm kiếm</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Loại sản phẩm</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đơn vị tính</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá nhập</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng tồn</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đóng gói</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                            <tr class="@GetClass(item.Quantity,item.QuantityAlert)" id="row_@item.ID">
+                                <td>
+                                    <div class="d-flex px-2 py-1">
+                                        <div class="d-flex flex-column justify-content-center">
+                                            <h6 class="mb-0 text-sm">@item.Name</h6>
+                                            @if (item.CategoryID.HasValue)
+                                            {
+                                                <p class="text-xs text-secondary mb-0">@GetSupplier(item.Code)</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">@GetCategoryName(item.CategoryID)</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">@GetUnitName(item.UnitID)</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">@GetPriceImport(item.Code)</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">@item.Quantity</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">@GetPackageName(item.PackageID)</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <a class="btn btn-link text-dark px-3 mb-0" href="/Product/EditProduct/@item.ID"><i class="material-icons text-sm me-2">edit</i>Chỉnh sửa</a>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div style="text-align:center;margin-top:15px;">
+                        <div style="display:inline-block" id="listPagination">
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,typeProduct = ViewBag.typeProduct, pageSize = ViewBag.pageSize }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section jsFooter{
+    @Html.Raw(addListProduct())
+    <script>
+        $(document).ready(function () {
+            AutoComplete(dataProduct, $("#searchString"));
+        });
+        function AutoComplete(dataProduct, element) {
+            element.autocomplete({
+                source: dataProduct,
+                minLength: 0,
+            },
+                {
+                    autoFocus: true,
+                    delay: 0,
+                });
+        }
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        addClasslist();
+    </script>
+}
+
+

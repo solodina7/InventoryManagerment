@@ -1,0 +1,160 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@model IPagedList<InventoryManagerment.Models.EF.Unit>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                    <div class="col-6">
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách đơn vị tính</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" href="/Unit/Create"><i class="material-icons text-sm">add</i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <div class="px-2 mb-1">
+                    <!-- Modal -->
+                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm đơn vị tính</h5>
+                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    @using (Html.BeginForm("Index", "Unit", method: FormMethod.Get))
+                                    {
+                                        <div class="input-group mb-3">
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập tên đơn vị tính" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <select name="pageSize" class="form-control">
+                                                    <option value="10">Số dòng hiển thị</option>
+                                                    @for (int a = 15; a <= 100; a += 5)
+                                                    {
+                                                        <option value="@a">@a</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                                            <span class="btn-inner--text">Tìm kiếm</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0" id="tbl_Export">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">STT</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên đơn vị tính</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tùy chọn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Count; i++)
+                            {
+                                <tr id="row_@Model[i].ID">
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@(i+1)</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">@Model[i].Name</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a href="/Unit/Edit/@Model[i].ID"><i class="material-icons">edit_note</i></a>
+                                        @*<a data-ajax="true" data-ajax-complete="$('#row_@Model[i].ID').remove()" data-ajax-confirm="Bạn có chắc muốn xóa đơn vị tính này không?" data-ajax-method="Delete" href="/Unit/Delete/@Model[i].ID"><i class="material-icons">delete</i></a>*@
+                                        <a class="delete" href="javascript:;" id="@Model[i].ID"><i class="material-icons">delete</i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div style="text-align:center">
+                        <div style="display:inline-block" id="listPagination">
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,pageSize = ViewBag.pageSize }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section jsFooter{
+    <script>
+        $(document).ready(function () {
+            $('#tbl_Export tbody  tr td .delete').click(function () {
+                var id = $(this).attr('id');
+                $.confirm({
+                    title: 'Thông báo',
+                    content: 'Bạn có chắc muốn xóa đơn vị tính này ?',
+                    buttons: {
+                        confirm:
+                        {
+                            text: 'Đồng ý',
+                            key: ['enter'],
+                            action: function () {
+                                var row = '#row_' + id;
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Unit/Delete/",
+                                    data: JSON.stringify({ id: id }),
+                                    contentType: "application/json; charset=utf8",
+                                    success: function () {
+                                        $(row).remove();
+                                        var obj = $.alert({
+                                            title: 'Thông báo',
+                                            content: 'Xóa thành công',
+                                        });
+                                        setTimeout(function () {
+                                            obj.close();
+                                        }, 1500);
+                                    },
+                                    error: function () {
+                                        $.alert('Xóa thất bại');
+                                    }
+                                });
+                            }
+                        },
+                        cancel: {
+                            text: 'Hủy',
+                            action: function () {
+                            }
+                        }
+                    }
+                });
+            });
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        addClasslist();
+    </script>
+}

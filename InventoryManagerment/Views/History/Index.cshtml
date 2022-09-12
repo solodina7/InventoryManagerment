@@ -1,0 +1,136 @@
+﻿@using PagedList;
+@using PagedList.Mvc;
+@model IPagedList<InventoryManagerment.Models.EF.History>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string GetActionKey(string actionKey)
+    {
+        switch (actionKey)
+        {
+            case "insert":
+                return "Thêm mới";
+            case "delete":
+                return "Xóa";
+            case "update":
+                return "Cập nhật";
+            default:
+                return "";
+        }
+    }
+}
+<div class="row">
+    <div class="col-12">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                    <div class="col-6">
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Lịch sử hoạt động</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="material-icons">filter_alt</i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <div class="px-2 mb-1">
+                    <div class="row">
+                        <div class="col-sm-auto">
+                            <!-- Modal -->
+                            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Tìm kiếm</h5>
+                                            <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            @using (Html.BeginForm("Index", "History", method: FormMethod.Get))
+                                            {
+                                            <div class="row">
+                                                <div class="input-group input-group-static my-3">
+                                                    <label for="ActionKey" class="ms-0">Loại hoạt động</label>
+                                                    <select class="form-control" name="actionKey" id="ActionKey">
+                                                        <option value="">Tất cả</option>
+                                                        <option value="insert">Thêm mới</option>
+                                                        <option value="update">Cập nhật</option>
+                                                        <option value="delete">Xóa</option>
+                                                    </select>
+                                                </div>
+                                                <div class="input-group input-group-static my-3">
+                                                    <label>Date</label>
+                                                    <input value="@ViewBag.time" class="form-control" name="time" type="date"/>
+                                                </div>
+                                            </div>
+                                                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive p-0">
+                    <table id="tbl_Export" class="table align-items-center mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">STT</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Ngày thực hiện</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Hoạt động</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Loại hoạt động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int i = 1; }
+                            @foreach (var item in Model)
+                            {
+                            <tr id="row_@item.ID">
+                                <td>
+                                    <div class="d-flex px-2 py-1">
+                                        <div class="d-flex flex-column justify-content-center">
+                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@i</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@item.Date.ToString("dd/MM/yyyy | HH:mm")</h6>
+                                </td>
+                                <td>
+                                    <h6 class="mb-0 text-sm">@item.Text</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@GetActionKey(item.ActionKey)</h6>
+                                </td>
+                            </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                    <div style="text-align:center">
+                        <div id="listPagination" style="display:inline-block">
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section jsFooter
+{
+    <script>
+        $(document).ready(function () {
+            addClasslist();
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        addClasslist();
+    </script>
+} 
+

@@ -1,0 +1,514 @@
+﻿@model InventoryManagerment.Models.EF.RefundForm
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var listProduct = (List<InventoryManagerment.Models.EF.Product>)ViewBag.Product;
+    var listUnit = (List<InventoryManagerment.Models.EF.Unit>)ViewBag.Unit;
+    var listCustomer = (List<InventoryManagerment.Models.EF.Customer>)ViewBag.Customer;
+    string GetProductName(string code)
+    {
+        var db = new InventoryManagerment.Models.EF.InventoryDbContext();
+        var product = db.Products.Where(x => x.Code == code).FirstOrDefault();
+        return product.Name;
+    }
+    string GetUnitName(long id)
+    {
+        if (id == 0)
+        {
+            return "Chưa set đơn vị tính";
+        }
+        else
+        {
+            var db = new InventoryManagerment.Models.EF.InventoryDbContext();
+            var product = db.Units.Find(id);
+            return product.Name;
+        }
+    }
+    string addListProduct()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataProduct = new Array();");
+        foreach (var item in listProduct)
+        {
+            sb.Append($" dataProduct.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string addProductModel()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var listProduct = new Array();");
+        foreach (var item in listProduct)
+        {
+            var quantity = item.Quantity;
+            foreach (var items in Model.refundDetails)
+            {
+                if (item.Code == items.ProductCode)
+                {
+                    quantity += items.Quantity;
+                }
+            }
+            sb.Append(" var ModelProduct = {};");
+            sb.Append($" ModelProduct.Name ='{item.Name}';");
+            sb.Append($" ModelProduct.CodeProduct='{item.Code}';");
+            sb.Append($" ModelProduct.Quantity='{quantity}';");
+            sb.Append($" ModelProduct.Price ='{item.Price}';");
+            sb.Append($" ModelProduct.UnitID ='{item.UnitID}';");
+            sb.Append($" listProduct.push(ModelProduct);");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string addListCustomer()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataCustomer = new Array();");
+        foreach (var item in listCustomer)
+        {
+            sb.Append($" dataCustomer.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string addCustomerModel()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append("var listCustomer = new Array();");
+        foreach (var item in listCustomer)
+        {
+            sb.Append(" var ModelCustomer = {};");
+            sb.Append($" ModelCustomer.Name = '{item.Name}';");
+            sb.Append($" ModelCustomer.Code = '{item.CustomerCode}';");
+            sb.Append($" ModelCustomer.Address = '{item.Address}';");
+            sb.Append($" ModelCustomer.Phone = '{item.Phone}';");
+            sb.Append($"listCustomer.push(ModelCustomer);");
+        }
+        sb.Append("</script>");
+        return sb.ToString();
+    }
+}
+<div class="row">
+    <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
+    <div class="input-group input-group-static my-3">
+        <label>Ngày nhập</label>
+        <input type="datetime-local" id="txtTime" name="txtTime" class="form-control" />
+    </div>
+    <div class="input-group input-group-static my-3 is-filled">
+        <label>Khách hàng</label>
+        <input disabled id="txtCustomerName" type="text" class="form-control" placeholder="Nhập tên khách hàng" />
+        <span onclick="showInfo()" style="cursor:pointer;" class="input-group-text" id="basic-addon2"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#exampleModal"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">infor</i></a></span>
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title font-weight-normal" id="exampleModalLabel"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">person</i>Thông tin khách hàng</h5>
+                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div id="modalBody" class="modal-body">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="input-group input-group-static my-3">
+        <label>Trạng thái</label>
+        <select disabled id="txtStatus" class="form-control">
+            <option value="null">Chọn trạng thái</option>
+            <option value="True">Đã duyệt</option>
+            <option value="False">Chưa duyệt</option>
+        </select>
+    </div>
+    <div class="input-group input-group-static my-3">
+        <label>Ghi chú</label>
+        <textarea id="txtNote" name="txtNote" class="form-control" rows="5" placeholder="Nhập ghi chú"></textarea>
+    </div>
+</div>
+<div class="row">
+    <h6>Thêm sản phẩm</h6>
+    <div class="col-md-3">
+        <div class="input-group input-group-dynamic my-3">
+            <input class="form-control" type="text" placeholder="Nhập tên sản phẩm" id="txtProductName" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group input-group-dynamic my-3">
+            <input class="form-control" type="text" placeholder="Giá Nhập" name="priceProduct" id="txtPrice" />
+            <span class="input-group-text" id="basic-addon2">/ VNĐ</span>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="input-group input-group-dynamic my-3">
+            <input type="number" value="" name="quantityProduct" placeholder="Số lượng" id="txtQuantity" class="form-control" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="input-group input-group-dynamic my-3">
+            <select id="txtUnit" class="form-control">
+                <option value="null">Chọn đơn vị tính</option>
+                @foreach (var item in listUnit)
+                {
+                    <option value="@item.ID">@item.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <input type="button" id="btnAddProduct" class="btn btn-primary" value="Thêm sản phẩm" />
+    </div>
+</div>
+<div class="row">
+    <h6>Danh sách sản phẩm</h6>
+    <div class="card-body px-0 pb-2">
+        <div class="table-responsive p-0    ">
+            <table class="table align-items-center mb-0" id="tableProductRecord">
+                <thead>
+                    <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Giá nhập</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Số lượng</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Đơn vị tính</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Thành tiền</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.refundDetails)
+                    {
+                        <tr>
+                            <td class="text-sm" id="@item.ProductCode">@GetProductName(item.ProductCode)</td>
+                            <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney(item.Price.ToString())</td>
+                            <td class="align-middle text-center text-sm">@item.Quantity</td>
+                            <td class="align-middle text-center text-sm" id="@item.UnitID">@GetUnitName(item.UnitID)</td>
+                            <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney((item.Quantity * item.Price).ToString())</td>
+                            <td><a class="editproduct" href="javascript:;" onclick="editproduct(this)"><i class="material-icons">edit</i></a><a href="javascript:;" onclick="this.closest('tr').remove()"><i class="material-icons">delete</i></a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row col-sm-2">
+    <input type="button" id="btnSave" name="SaveData" value="Cập nhật phiếu trả" class="btn btn-success" />
+</div>
+@section jsFooter{
+    @Html.Raw(addProductModel())
+    @Html.Raw(addListCustomer());
+    @Html.Raw(addCustomerModel());
+    <script>
+        $(document).ready(function () {
+            $("#btnAddProduct").click(function () {
+                AddProductRecord();
+            });
+            $("#btnSave").click(function () {
+                SaveProduct();
+            });
+            setTime();
+            setValue();
+            AutoComplete(dataProduct, $('#txtProductName'));
+            AutoComplete(dataCustomer, $('#txtCustomerName'));
+            $('#txtCustomerName').focusout(function () {
+                var text = $('#txtCustomerName').val();
+                if (jQuery.inArray(text, dataCustomer) != -1 || text == "") {
+                    $('#txtCustomerName').val(text);
+                }
+                else if (jQuery.inArray(text, dataProduct) == -1) {
+                    $('#txtCustomerName').val("");
+                    $('div.row:eq(0) div.input-group:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập tên khách hàng có trong dữ liệu</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+            $('#txtProductName').focusout(function () {
+                var text = $('#txtProductName').val();
+                var price = "0";
+                var unitid = "null";
+                var currentquantity = "0";
+                if (jQuery.inArray(text, dataProduct) != -1 || text == "") {
+                    $('#txtProductName').val(text);
+                    if ($('#txtPrice').val() == "" || $('#txtPrice').val() != "") {
+                        var code = CheckName(text, listProduct);
+                        listProduct.forEach(element => {
+                            if (element.CodeProduct == code) {
+                                price = element.Price;
+                                unitid = element.UnitID
+                            }
+                        });
+                        $('#txtPrice').val(formatNumber(price, '.', ','))
+                    }
+                    $('#txtUnit').val(unitid);
+                    $('#txtQuantity').focus();
+                }
+                else if (jQuery.inArray(text, dataProduct) == -1) {
+                    $('#txtProductName').val("");
+                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này vui lòng thử lại</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+            $('#txtQuantity').focusout(function () {
+                var quantity = $('#txtQuantity').val();
+                var nameproduct = $('#txtProductName').val();
+                var productcode = CheckName(nameproduct, listProduct);
+                var currentquantity = "";
+                listProduct.forEach(item => {
+                    if (item.CodeProduct == productcode) {
+                        currentquantity = item.Quantity;
+                    }
+                });             
+            });
+            $('#txtPrice').focusout(function () {
+                var text = $('#txtPrice').val();
+                if ($.isNumeric(text) || text.indexOf(',') != -1 || text == '') {
+                    $('#txtPrice').val(formatNumber(text, '.', ','));
+                }
+                else if (!$.isNumeric(text)) {
+                    $('#txtPrice').val("");
+                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập số</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+        });
+        function showInfo() {
+            var customerName = $("#txtCustomerName").val();
+            var Name = "";
+            var Phone = "";
+            var Address = "";
+            var count = 0;
+            listCustomer.forEach(element => {
+                if (element.Name == customerName) {
+                    Name = element.Name;
+                    Phone = element.Phone;
+                    Address = element.Address;
+                    count++;
+                }
+            });
+            if (count == 0) {
+                $("#modalBody").html("");
+                $("#modalBody").append("<h6>Không tìm thấy thông tin khách hàng này</h6>");
+            }
+            else {
+                $("#modalBody").html("");
+                $("#modalBody").append("<h6>Tên khách hàng:<p>" + Name + "</p></h6><h6>Số điện thoại:<p>" + Phone + "</p></h6><h6>Địa chỉ:<p>" + Address + "</p></h6>");
+            }
+        };
+        function setValue() {
+            var namecustomer = getCustomerName("@Model.Refund.CustomerCode");
+            $('#txtCustomerName').val(namecustomer);
+            $('#txtNote').val('@Model.Refund.Note');
+            $('#txtStatus option[value=@Model.Refund.Status]').attr('selected', 'selected');
+    };
+        function setTime() {
+            const dateControl = document.querySelector('input[type="datetime-local"]');
+            dateControl.value = '@Model.Refund.Time.ToString("yyyy-MM-ddTHH:mm")';
+    };
+        function formatNumber(nStr, decSeperate, groupSeperate) {
+            nStr += '';
+            x = nStr.split(decSeperate);
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + groupSeperate + '$2');
+            }
+            return x1 + x2;
+    };
+        function AddProductRecord() {
+            if ($('#txtProductName').val().length == 0) {
+                $.alert('Vui lòng nhập sản phẩm');
+                $('#txtProductName').focus();
+                return;
+            }
+            if ($("#txtPrice").val().length == 0) {
+                $.alert('Vui lòng nhập giá sản phẩm');
+                $('#txtProductCode').focus();
+                return;
+            }
+            if ($("#txtQuantity").val().length == 0) {
+                $.alert('Vui lòng nhập số lượng');
+                $('#txtQuantity').focus();
+                return
+            }
+            if ($("#txtUnit option:selected").val() == 'null') {
+                $.alert('Vui lòng chọn đơn vị tính');
+                $('#txtUnit').focus();
+                return;
+            }
+            var temp = 0;
+            $("#tableProductRecord tbody tr").each(function () {
+                var name = $("#txtProductName").val();
+                if ($(this).find("td:eq(0)").html() == name) {
+                    temp += 1;
+                }
+            });
+            if (temp > 0) {
+                $.alert('Sản phẩm này đã tồn tại vui lòng kiểm tra lại');
+                $('#txtProductName').val("");
+                return;
+            }
+            var code = $('#txtProductName').val();
+            var productCode = CheckName(code, listProduct);
+            var price = $("#txtPrice").val();
+            var quantity = $("#txtQuantity").val();
+            var total = formatNumber((price.replace(',','') * quantity).toString(), '.', ',');
+            var unit = $("#txtUnit option:selected").text();
+            var unitID = $("#txtUnit option:selected").val();
+            var productRecord = "<tr><td class=\"text-sm\"  id=" + productCode + ">" + code + "</td>" +
+                "<td class=\"align-middle text-center text-sm\">" + formatNumber(price.toString(), '.', ',') + "</td>" +
+                "<td class=\"align-middle text-center text-sm\">" + quantity + "</td>" +
+                "<td class=\"align-middle text-center text-sm\" id=" + unitID + ">" + unit + "</td>" +
+                "<td class=\"align-middle text-center text-sm\">" + total + "</td>" +
+                "<td><a class=\"editproduct\" href =\"javascript:;\" onclick=\"editproduct(this)\"><i class=\"material-icons\">edit</i></a><a href=\"javascript:;\" onclick=\"this.closest('tr').remove()\"><i class=\"material-icons\">delete</i></a></td></tr>";
+            $("#tableProductRecord tbody").last().append(productRecord);
+            $("#txtPrice").val("");
+            $("#txtQuantity").val("");
+            $("#txtUnit").prop('selectedIndex', 0);
+            $("#txtProductName").val("");
+            $("#txtProductName").focus();
+    };
+        function editproduct(element) {
+            var row = $(element).closest("tr");
+            var name = $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(5) a:eq(0)').find('i').html();
+            if (name == 'edit') {
+                var price = $('#tableProductRecord tbody tr:eq(' + row.index() + ')').find('td:eq(1)').html();
+                var quantity = $('#tableProductRecord tbody tr:eq(' + row.index() + ')').find('td:eq(2)').html();
+                var inputPrice = "<input type='text' value=" + price.replace(',', '') + ">";
+                var inputQuantity = "<input type='number' value=" + quantity + ">";
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').html("");
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(2)').html("");
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').append(inputPrice);
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(2)').append(inputQuantity);
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(5)').find('a:eq(0)').html('<i class="material-icons">done</i>');
+            }
+            else {
+                var price = $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').val();
+                var quantity = $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').val();
+                var name = $('#tableProductRecord tbody tr:eq(' + row.index() + ')').find('td:eq(0)').html();
+                var currentquantity = "0";
+                listProduct.forEach(item => {
+                    if (item.Name == name) {
+                        currentquantity = item.Quantity;
+                    }
+                });
+                if (parseInt(quantity) > parseInt(currentquantity)) {
+                    $.alert('Sản phẩm này chỉ còn ' + currentquantity + '');
+                    $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').val(currentquantity);
+                    return;
+                }
+                if (!$.isNumeric(price)) {
+                    $.alert("Vui lòng nhập số")
+                    $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').focus();
+                    return;
+                }
+                var total = price.replace(',', '') * quantity;
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').remove();
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').remove();
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').html(formatNumber(price, '.', ','));
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(2)').html(quantity);
+                $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(4)').html(formatNumber(total, '.', ','));
+                $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(5)').find('a:eq(0)').html('<i class="material-icons">edit</i>');
+            }
+        }
+        function AutoComplete(dataProduct, element) {
+            element.autocomplete({
+                source: dataProduct,
+                minLength: 0,
+            },
+                {
+                    autoFocus: true,
+                    delay: 0,
+                });
+        }
+        function SaveProduct() {
+            if ($('#txtCustomerName').val() == "") {
+                $.alert("Vui lòng nhập tên khách hàng");
+                $('#txtCustomerName').focus();
+                return;
+            }
+            var listProduct = new Array();
+            var table = $('#tableProductRecord tbody tr');
+            table.each(function () {
+                var Code = $(this).find("td:eq(0)").attr('id');
+                var Price = $(this).find("td:eq(1)").text();
+                var Quantity = $(this).find("td:eq(2)").text();
+                var UnitID = $(this).find("td:eq(3)").attr('id');
+                var Time = $("#txtTime").val();
+                var Note = $("#txtNote").val();
+                var codeCustomer = getCustomerCode($("#txtCustomerName").val())
+                var CustomerCode = codeCustomer;
+                var Delivery = $('#txtDelivery').val();
+                var Status = $('#txtStatus').val();
+                var ExportCode = '@Model.Refund.Code';
+                var ProductModel = {};
+                ProductModel.Code = ExportCode;
+                ProductModel.Status = Status;
+                ProductModel.CustomerCode = CustomerCode;
+                ProductModel.Delivery = Delivery;
+                ProductModel.Price = Price;
+                ProductModel.Quantity = Quantity;
+                ProductModel.ProductCode = Code;
+                ProductModel.Time = Time;
+                ProductModel.Note = Note;
+                ProductModel.UnitID = UnitID;
+                listProduct.push(ProductModel);
+            });
+
+            if (listProduct.length == 0) {
+                $.alert('Vui lòng thêm ít nhất 1 sản phẩm');
+                return;
+            }
+
+            $.ajax({
+                async: true,
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: 'application/json; charset=utf=8',
+                url: '/ListReceiptRefund/Edit/',
+                data: JSON.stringify(listProduct),
+                success: function () {
+                    location.reload(true);
+                },
+                error: function () {
+                    $.alert({
+                        title: 'Thông báo',
+                        content: 'Lỗi',
+                    })
+                }
+            })
+    };
+        function getCustomerName(code) {
+        var name = "";
+        listCustomer.forEach(item => {
+            if (item.Code == code) {
+                name = item.Name;
+            }
+        });
+        return name;
+    }
+        function getCustomerCode(name,) {
+            var code = "";
+            listCustomer.forEach(element => {
+                if (element.Name == name) {
+                    code = element.Code;
+                }
+            });
+            return code;
+    }
+        function CheckName(text, list) {
+            var key = "";
+            list.forEach(ModelProduct => {
+                if (text == ModelProduct.Name) {
+                    key = ModelProduct.CodeProduct;
+                }
+            });
+            return key;
+        }
+    </script>
+    @Html.Raw(addListProduct())
+}

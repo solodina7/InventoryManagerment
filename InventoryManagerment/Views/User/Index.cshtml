@@ -1,0 +1,173 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@model IPagedList<InventoryManagerment.Models.EF.User>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string GetRoleName(long id) {
+        InventoryManagerment.Models.EF.InventoryDbContext db = new InventoryManagerment.Models.EF.InventoryDbContext();
+        var name = db.Roles.Find(id);
+        return name.Name;
+    }
+}
+@section jsFooter{
+    <script>
+        $(document).ready(function () {
+            $('#tbl_user tbody tr td .delete').click(function () {
+                var id = $(this).attr('id');
+                $.confirm({
+                    title: 'Thông báo',
+                    content: 'Bạn có chắc muốn người dùng này ?',
+                    buttons: {
+                        confirm:
+                        {
+                            text: 'Đồng ý',
+                            action: function () {
+                                var row = '#row_' + id;
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/User/Delete/",
+                                    data: JSON.stringify({ id: id }),
+                                    contentType: "application/json; charset=utf8",
+                                    success: function () {
+                                        $.alert('Xóa thành công');
+                                        $(row).remove();
+                                    },
+                                    error: function () {
+                                        $.alert('Xóa thất bại');
+                                    }
+                                });
+                            }
+                        },
+                        cancel: {
+                            text: 'Hủy',
+                            action: function () {
+                            }
+                        }
+                    }
+                });
+            });
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        addClasslist();
+    </script>
+}
+<div class="row">
+    <div class="col-12">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                    <div class="col-6">
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách người dùng</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" href="/User/Create"><i class="material-icons text-sm">add</i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <div class="px-2 mb-1">
+                    <!-- Modal -->
+                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm người dùng</h5>
+                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    @using (Html.BeginForm("Index", "User", method: FormMethod.Get))
+                                    {
+                                        <div class="input-group mb-3">
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập tên người dùng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <select name="pageSize" class="form-control">
+                                                    <option value="10">Số dòng hiển thị</option>
+                                                    @for (int a = 15; a <= 100; a += 5)
+                                                    {
+                                                        <option value="@a">@a</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                                            <span class="btn-inner--text">Tìm kiếm</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0" id="tbl_user">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên người dùng</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên tài khoản</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Mật khẩu</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Trạng thái</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tùy chọn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr id="row_@item.ID">
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div>
+                                                <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3 border-radius-lg" alt="user1">
+                                            </div>
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">@item.Name</h6>
+                                                <p class="text-xs text-secondary mb-0">@GetRoleName(item.RoleID)</p>
+                                            </div>
+                                        </div>                                       
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold">@item.UserName</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span type class="text-secondary text-xs font-weight-bold">@item.Password</span>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        @if (item.Status == true)
+                                        {
+                                            <span class="badge badge-sm bg-gradient-success">Hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-sm bg-gradient-danger">Khóa</span>
+                                        }
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a href="/User/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
+                                        <a class="delete" href="javascript:;" id="@item.ID"><i class="material-icons">delete</i></a>              
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div style="text-align:center">
+                        <div style="display:inline-block" id="listPagination">
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

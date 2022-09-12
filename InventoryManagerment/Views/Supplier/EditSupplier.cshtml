@@ -1,0 +1,26 @@
+﻿@model InventoryManagerment.Models.EF.Supplier
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
+    @using (Html.BeginForm("EditSupplier", "Supplier", method: FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="input-group input-group-outline mb-3 focus is-focused">
+            @Html.LabelFor(model => model.Name, new { @class = "form-label" })
+            @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+            <br>
+            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" value="Create" class="btn btn-primary">Cập nhật nhà cung cấp</button>
+            </div>
+        </div>
+    }
+    <div>
+        @Html.ActionLink("Quay trở lại danh sách", "Index")
+    </div>
+</div>

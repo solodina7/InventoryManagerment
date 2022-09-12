@@ -1,0 +1,278 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@using InventoryManagerment.Models.EF;
+@model IPagedList<InventoryManagerment.ViewModel.ImportViewModel>
+
+@{
+    //Import Index
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string GetProductPrice(string Code)
+    {
+        var db = new InventoryDbContext();
+        var list = db.ImportDetails.Where(x=>x.ImportCode==Code).ToList();
+        decimal sum = 0;
+        foreach (var item in list) {
+            sum += (item.ImportPrice * item.Quantity);
+        }
+        return InventoryManagerment.Common.Functions.NumberToMoney(sum.ToString());
+    }
+    long GetProductQuantity(string Code)
+    {
+        var db = new InventoryDbContext();
+        var list = db.ImportDetails.Where(x => x.ImportCode == Code).ToList();
+        return list.Count;
+    }
+    string GetNameProduct(string Code)
+    {
+        var db = new InventoryDbContext();
+        Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
+        return product.Name;
+    }
+    string GetNameUnit(long id)
+    {
+        var db = new InventoryDbContext();
+        return db.Units.Find(id).Name;
+    }
+    List<ImportDetail> GetListProduct(string Code)
+    {
+        var db = new InventoryDbContext();
+        return db.ImportDetails.Where(x => x.ImportCode == Code && x.ImportDetailDelete == false).ToList();
+    }
+    string GetNote(string note)
+    {
+        if (note == null)
+        {
+            return "Không có ghi chú";
+        }
+        int z;
+        if (note.Length > 20)
+        {
+            for (z = 20; z <= note.Length; z++)
+            {
+                if ((char)note[z] == ' ')
+                {
+                    break;
+                }
+                else { continue; }
+            }
+            return note.Substring(0, z) + " ...";
+        }
+        else
+        {
+            return note;
+        }
+
+    }
+    }
+<div class="row">
+    <div class="col-12">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                    <div class="col-6">
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách phiếu nhập</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal" ><i class="material-icons text-sm">search</i></a>
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" href="/Import/Create"><i class="material-icons text-sm">add</i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <div class="px-2 mb-1">
+                    <!-- Modal -->
+                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm phiếu nhập</h5>
+                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    @using (Html.BeginForm("Index", "Import", method: FormMethod.Get))
+                                    {
+                                    <div class="input-group mb-3">
+                                        <div class="input-group input-group-static mb-4">
+                                            <input placeholder="Nhập tên nhà cung cấp" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <input placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.note" name="note">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.productName" name="productName">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateImport" id="dateImport" name="dateImport">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <select name="pageSize" class="form-control">
+                                                <option value="10">Số dòng hiển thị</option>
+                                                @for (int a = 15; a <= 100; a += 5)
+                                                {
+                                                    <option value="@a">@a</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                                            <span class="btn-inner--text">Tìm kiếm</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>                  
+                </div>
+                <div class="table-responsive p-0">
+                    <table id="tbl_Export" class="table align-items-center mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">STT</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Ngày nhập</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên nhà cung cấp</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số sản phẩm nhập</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tổng tiền nhập</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Ghi chú</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tùy chọn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int i = 1; }
+                            @foreach (var item in Model)
+                            {
+                            <tr id="row_@item.ID">
+                                <td>
+                                    <div class="d-flex px-2 py-1">
+                                        <div class="d-flex flex-column justify-content-center">
+                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@i</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@item.Time.ToString("dd/MM/yyyy | HH:mm")</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@item.NameSupplier</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#import_@item.Code"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>                                   
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="import_@item.Code" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Chi tiết sản phẩm</h5>
+                                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table align-items-center mb-0" id="tbl_Product">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đơn giá</th>
+                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
+                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var items in GetListProduct(item.Code))
+                                                            {
+                                                            <tr>
+                                                                <td class="align-middle text-center">
+                                                                    <span class="text-secondary text-xs font-weight-bold">@GetNameProduct(items.ProductCode)</span>
+                                                                </td>
+                                                                <td class="align-middle text-center">
+                                                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(items.ImportPrice.ToString()) VNĐ</span>
+                                                                </td>
+                                                                <td class="align-middle text-center">
+                                                                    <span class="text-secondary text-xs font-weight-bold">@items.Quantity @GetNameUnit(items.UnitID)</span>
+                                                                </td>
+                                                                <td class="align-middle text-center">
+                                                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney((items.Quantity*items.ImportPrice).ToString())</span>
+                                                                </td>
+                                                            </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@GetProductPrice(item.Code)</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@GetNote(item.Note)</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <a href="/Import/Edit/@item.ID"><i class="material-icons">edit_note</i></a>                                  
+                                    <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
+                                </td>
+                            </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                    <div style="text-align:center">
+                        <div id="listPagination" style="display:inline-block">
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,note = ViewBag.note, productName= ViewBag.productNamem, dateImport = ViewBag.dateImport,pageSize = ViewBag.pageSize }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section jsFooter{
+    <script>
+        $(document).ready(function () {
+            $('#tbl_Export tbody  tr td .delete').click(function () {
+                var id = $(this).attr('id');
+                $.confirm({
+                    title: 'Thông báo',
+                    content: 'Bạn có chắc muốn xóa phiếu nhập này ?',
+                    buttons: {
+                        confirm:
+                        {
+                            text: 'Đồng ý',
+                            action: function () {
+                                var row = '#row_' + id;
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Import/Delete/",
+                                    data: JSON.stringify({ id: id }),
+                                    contentType: "application/json; charset=utf8",
+                                    success: function () {
+                                        $.alert('Xóa phiếu nhập thành công');
+                                        $(row).remove();
+                                    },
+                                    error: function () {
+                                        $.alert('Xóa phiếu nhập thất bại');
+                                    }
+                                });
+                            }
+                        },
+                        cancel: {
+                            text: 'Hủy',
+                            action: function () {
+                            }
+                        }
+                    }
+                });
+            });
+            addClasslist();
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }        
+    </script>
+}

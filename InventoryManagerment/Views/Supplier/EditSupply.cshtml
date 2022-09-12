@@ -1,0 +1,35 @@
+﻿@model InventoryManagerment.Models.EF.SupplyDetail
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    @using (Html.BeginForm("EditSupply", "Supplier", method: FormMethod.Post))
+    {
+        @Html.HiddenFor(model => model.SupplierID)
+        <div class="input-group input-group-static mb-3">
+            @Html.LabelFor(model => model.ProductCode)
+            @Html.DropDownListFor(model => model.ProductCode, null, new { @class = "form-control" })
+            <br />
+            @Html.ValidationMessageFor(model => model.ProductCode, "", new { @class = "text-danger" })
+        </div>
+        <div class="input-group input-group-static mb-3">
+            @Html.LabelFor(model => model.Price)
+            @Html.TextBoxFor(model => model.Price, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.Price, "", new { @class = "text-danger" })
+        </div>
+        <div class="input-group input-group-static mb-3">
+            @Html.LabelFor(model => model.UnitID)
+            @Html.DropDownListFor(model => model.UnitID, null, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" value="Create" class="btn btn-primary">Cập nhật sản phẩm</button>
+            </div>
+        </div>
+    }
+    <div>
+        @Html.ActionLink("Quay trở lại danh sách", "Index")
+    </div>
+</div>

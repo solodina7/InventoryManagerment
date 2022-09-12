@@ -1,0 +1,198 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@using InventoryManagerment.Models.EF;
+@model IPagedList<InventoryManagerment.ViewModel.SupplierViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new InventoryDbContext();
+    int CountProduct(long id) {
+        var list = db.SupplyDetails.Where(x => x.SupplierID == id).ToList();
+        return list.Count;
+    }
+    List<SupplyDetail> supplyDetails(long id)
+    {
+        return db.SupplyDetails.Where(x => x.SupplierID == id).ToList();
+    }
+    string getNameProduct(string code)
+    {
+        var product = db.Products.Where(x => x.Code == code).First();
+        if(product!= null)
+        {
+            return product.Name;
+        }
+        else
+        {
+            return "";
+        }
+    }
+}
+@section jsFooter{
+    <script>
+        $(document).ready(function () {
+            $('#tbl_supplier tbody tr td .delete').click(function () {
+                var id = $(this).attr('id');
+                $.confirm({
+                    title: 'Thông báo',
+                    content: 'Bạn có chắc muốn nhà cung cấp này ?',
+                    buttons: {
+                        confirm:
+                        {
+                            text: 'Đồng ý',
+                            action: function () {
+                                var row = '#row_' + id;
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Supplier/DeleteSupplier/",
+                                    data: JSON.stringify({ id: id }),
+                                    contentType: "application/json; charset=utf8",
+                                    success: function () {
+                                        $.alert('Xóa thành công');
+                                        $(row).remove();
+                                    },
+                                    error: function () {
+                                        $.alert('Xóa thất bại');
+                                    }
+                                });
+                            }
+                        },
+                        cancel: {
+                            text: 'Hủy',
+                            action: function () {
+                            }
+                        }
+                    }
+                });
+            });
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        addClasslist();
+    </script>
+}
+<div class="row">
+    <div class="col-12">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                    <div class="col-6">
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách nhà cung cấp</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" href="/Supplier/Create"><i class="material-icons text-sm">add</i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <div class="px-2 mb-1">
+                    <!-- Modal -->
+                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm sản phẩm</h5>
+                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    @using (Html.BeginForm("Index", "Supplier", method: FormMethod.Get))
+                                    {
+                                        <div class="input-group mb-3">
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập tên nhà cung cấp, sản phẩm cung cấp" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <select name="pageSize" class="form-control">
+                                                    <option value="10">Số dòng hiển thị</option>
+                                                    @for (int a = 15; a <= 100; a += 5)
+                                                    {
+                                                        <option value="@a">@a</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                                            <span class="btn-inner--text">Tìm kiếm</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive p-0">
+                    <table id="tbl_supplier" class="table align-items-center mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">STT</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên nhà cung cấp</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số sản phẩm cung cấp</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tùy chọn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Count; i++)
+                            {
+                            <tr id="row_@Model[i].ID">
+                                <td>
+                                    <div class="d-flex px-2 py-1">
+                                        <div class="d-flex flex-column justify-content-center">
+                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@(i+1)</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex px-2 py-1">
+                                        <div class="d-flex flex-column justify-content-center">
+                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@Model[i].Name</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">@CountProduct(Model[i].ID)<a class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#supply_@Model[i].ID"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>      
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="supply_@Model[i].ID" tabindex="-1" role="dialog" aria-labelledby="titlemodal" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title font-weight-normal" id="titlemodal">Sản phẩm cung cấp</h5>
+                                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    @foreach(var item in supplyDetails(Model[i].ID)) 
+                                                    {
+                                                        <p>Tên sản phẩm: @getNameProduct(item.ProductCode)</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <a href="/Supplier/EditSupplier/@Model[i].ID"><i class="material-icons">edit_note</i></a>
+                                    <a href="/Supplier/Detail/@Model[i].ID"><i class="material-icons">info</i></a>
+                                    <a class="delete" href="javascript:;" id="@Model[i].ID"><i class="material-icons">delete</i></a>                                  
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div style="text-align:center">
+                        <div style="display:inline-block" id="listPagination">
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+﻿@model InventoryManagerment.Models.EF.Product
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
+    @using (Html.BeginForm("EditProduct", "Product", method: FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.Name)
+            @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+        </div>
+
+        <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.CategoryID)
+            @Html.DropDownListFor(model => model.CategoryID, null, "-Chọn loại sản phẩm-", new { @class = "form-control e" })
+            @Html.ValidationMessageFor(model => model.CategoryID, "", new { @class = "text-danger" })
+        </div>
+
+        <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.Price)
+            @Html.TextBoxFor(model => model.Price, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.Price, "", new { @class = "text-danger" })
+        </div>
+
+        <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.UnitID)
+            @Html.DropDownListFor(model => model.UnitID, null, "Chọn đơn vị tính", new { @class = "form-control e" })
+            @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
+        </div>
+
+        <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.PackageID)
+            @Html.DropDownListFor(model => model.PackageID, null, "Chọn loại đóng gói", new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.PackageID, "", new { @class = "text-danger" })
+        </div>
+
+        <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
+            @Html.LabelFor(model => model.QuantityAlert)
+            @Html.TextBoxFor(model => model.QuantityAlert, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.QuantityAlert, "", new { @class = "text-danger" })
+        </div>
+
+        <div style="margin-top:40px !important;" class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" value="Create" class="btn btn-primary">Cập nhật sản phẩm</button>
+            </div>
+        </div>
+    }
+    <div>
+        <a href="javascript:;" onclick="history.back()">Quay trở lại</a>
+    </div>
+</div>
