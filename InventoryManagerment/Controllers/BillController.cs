@@ -27,5 +27,11 @@ namespace InventoryManagerment.Controllers
             var model = new DataAccess2().ListAllHoaDonToPagedList(searchString,nameProduct,totalPrice, dateBill, page, pageSize);
             return View(model);
         }
+        [HttpGet]
+        public JsonResult GetDataBill(string code)
+        {
+            var listBill = new DataAccess2().GetListBill(code);
+            return Json(listBill, JsonRequestBehavior.AllowGet);
+        }
     }
 }

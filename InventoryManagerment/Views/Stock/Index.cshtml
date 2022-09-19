@@ -93,8 +93,15 @@
     }
     string getnamesupplier(long id)
     {
-        var supplier = db.Suppliers.Find(id);
-        return supplier.Name;
+        if(id == 0)
+        {
+            return "";
+        }
+        else
+        {
+            var supplier = db.Suppliers.Find(id);
+            return supplier.Name;
+        }
     }
     string GetSupplier(string productCode)
     {
@@ -155,6 +162,9 @@
         color: white !important;
         background-color: #ffd59f;
     }
+    .ui-autocomplete {
+        z-index: 2147483647;
+    }
 </style>
 <div class="row" id="productList">
     <div class="col-12">
@@ -186,10 +196,11 @@
                                     {
                                     <div class="input-group mb-3">
                                         <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                            <label class="ms-0">Tên sản phẩm</label>
+                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" id="searchString" value="@ViewBag.searchString" name="searchString">
                                         </div>
                                         <div class="input-group input-group-static mb-4">
-                                            <label for="ActionKey" class="ms-0">Loại Sản Phẩm</label>
+                                            <label class="ms-0">Loại sản phẩm</label>
                                             <select class="form-control" name="typeProduct" id="typeProduct" value="@ViewBag.typeProduct">
                                                 <option value="0">Tất cả</option>
                                                 @foreach (var item in listCategory)
@@ -199,7 +210,16 @@
                                             </select>
                                         </div>
                                         <div class="input-group input-group-static mb-4">
-                                            <select name="pageSize" class="form-control">
+                                            <label class="ms-0">Số lượng sản phẩm</label>
+                                            <select id="quantity" name="quantity" class="form-control">
+                                                <option value="0">Tất cả</option>
+                                                <option value="1">Gần Hết</option>
+                                                <option value="2">Hết</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <label class="ms-0">Số dòng hiển thị</label>
+                                            <select id="pageSize" name="pageSize" class="form-control">
                                                 <option value="10">Số dòng hiển thị</option>
                                                 @for (int a = 15; a <= 100; a += 5)
                                                 {
@@ -270,7 +290,7 @@
                     </table>
                     <div style="text-align:center;margin-top:15px;">
                         <div style="display:inline-block" id="listPagination">
-                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,typeProduct = ViewBag.typeProduct, pageSize = ViewBag.pageSize }))
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,quantity = ViewBag.quantity,typeProduct = ViewBag.typeProduct, pageSize = ViewBag.pageSize }))
                         </div>
                     </div>
                 </div>
@@ -280,9 +300,11 @@
 </div>
 @section jsFooter{
     @Html.Raw(addListProduct())
-    <script>
+<script>
         $(document).ready(function () {
             AutoComplete(dataProduct, $("#searchString"));
+            setValue();
+            addClasslist();
         });
         function AutoComplete(dataProduct, element) {
             element.autocomplete({
@@ -300,8 +322,15 @@
                 $(this).find('a').addClass('page-link')
             });
         }
-        addClasslist();
-    </script>
+    function setValue() {
+        var quantity = '@ViewBag.quantity'
+        var typeProduct = '@ViewBag.typeProduct';
+        var pageSize = '@ViewBag.pageSize';
+        $('#typeProduct option[value=' + typeProduct+']').attr('selected', 'selected');
+        $('#pageSize option[value=' + pageSize + ']').attr('selected', 'selected');
+        $('#quantity option[value=' + quantity + ']').attr('selected', 'selected');
+        }
+</script>
 }
 
 

@@ -80,7 +80,7 @@ namespace InventoryManagerment.Controllers
         [HttpGet]
         public ActionResult Detail(long id)
         {            
-            var supplier = new DataAccess().GetSupplier(id);
+            var supplier = new DataAccess().GetSupplier(id,"");
             ViewBag.Title = "Tuấn Hoan - Thông Tin Nhà Cung Cấp " + supplier.Name;
             TempData[Common.CommonConstants.PAGE_NAME] = "Thông tin nhà cung cấp " + supplier.Name;
             var listSupply = new DataAccess().GetListSupply(id);
@@ -127,7 +127,7 @@ namespace InventoryManagerment.Controllers
         {
             ViewBag.Title = "Tuấn Hoan - Cập Nhật Nhà Cung Cấp";
             TempData[Common.CommonConstants.PAGE_NAME] = "Cập nhật nhà cung cấp";
-            var model = new DataAccess().GetSupplier(id);
+            var model = new DataAccess().GetSupplier(id,"");
             return View(model);
         }
         [HttpPost]

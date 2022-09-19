@@ -10,14 +10,14 @@ namespace InventoryManagerment.Controllers
     public class HomeController : BaseController
     {
         // GET: Home
-        public ActionResult Index(string searchString,long typeProduct=0,int page=1,int pageSize=10)
+        public ActionResult Index(string searchString,long quantity = 0,long typeProduct=0,int page=1,int pageSize=10)
         {
             ViewBag.Title = "Tuấn Hoan - Dash Board";
             TempData[Common.CommonConstants.PAGE_NAME] = "Trang chủ";
             ViewBag.User = new DataAccess().GetUser(GetUserName());
             ViewBag.searchString = searchString;
             ViewBag.typeProduct = typeProduct;
-            var model = new DataAccess().ListAllProductOnPagedlist(searchString, typeProduct, page, pageSize);
+            var model = new DataAccess().ListAllProductOnPagedlist(searchString,quantity, typeProduct, page, pageSize);
             return View(model);
         }
         public ActionResult Test()

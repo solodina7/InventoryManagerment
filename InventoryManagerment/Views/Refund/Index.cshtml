@@ -25,11 +25,6 @@
         }
 
     }
-    List<RefundDetail> GetListProduct(string Code)
-    {
-        var db = new InventoryDbContext();
-        return db.RefundDetails.Where(x => x.RefundCode == Code && x.RefundDetailDelete == false).ToList();
-    }
     string GetNote(string note)
     {
         if (note == null)
@@ -61,18 +56,39 @@
         var list = db.RefundDetails.Where(x => x.RefundCode == Code).ToList();
         return list.Count;
     }
-    string GetNameProduct(string Code)
-    {
-        var db = new InventoryDbContext();
-        Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
-        return product.Name;
-    }
-    string GetNameUnit(long id)
-    {
-        var db = new InventoryDbContext();
-        return db.Units.Find(id).Name;
-    }
 }
+<div class="modal fade" id="refundDetail" tabindex="-1" role="dialog" aria-labelledby="reunfdModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="refundModalLabel">Phiếu trả</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-start">Ngày trả:<p>...</p></h6>
+                <h6 class="text-start">Tên khách hàng: <p>...</p></h6>
+                <h6 class="text-start">Nhân viên lập: <p>...</p></h6>
+                <h6 class="text-start">Ghi chú: <p>...</p></h6>
+                <h6 class="text-start">Danh sách sản phẩm</h6>
+                <table id="tableInvoice" class="table align-items - center mb - 0">
+                    <thead>
+                        <tr>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá đơn vị</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <blockquote id="totalPrice" class="blockquote text-center"><p class="h6 text-start">&nbsp;Tổng tiền: <span>...</span></p></blockquote>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card my-4">
@@ -182,51 +198,7 @@
                                     <h6 class="mb-0 text-sm">@item.NameUser</h6>
                                 </td>
                                 <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#import_@item.Code"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="import_@item.Code" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Chi tiết sản phẩm</h5>
-                                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <table class="table align-items-center mb-0" id="tbl_Product">
-                                                        <thead>
-                                                            <tr>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đơn giá</th>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach (var items in GetListProduct(item.Code))
-                                                            {
-                                                                <tr>
-                                                                    <td class="align-middle text-center">
-                                                                        <span class="text-secondary text-xs font-weight-bold">@GetNameProduct(items.ProductCode)</span>
-                                                                    </td>
-                                                                    <td class="align-middle text-center">
-                                                                        <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(items.Price.ToString()) VNĐ</span>
-                                                                    </td>
-                                                                    <td class="align-middle text-center">
-                                                                        <span class="text-secondary text-xs font-weight-bold">@items.Quantity @GetNameUnit(items.UnitID)</span>
-                                                                    </td>
-                                                                    <td class="align-middle text-center">
-                                                                        <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney((items.Quantity * items.Price).ToString())</span>
-                                                                    </td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a id="@item.Code" onclick="showDetail(this)" class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#refundDetail"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
                                 </td>
                                 <td class="align-middle text-center">
                                     <h6 class="mb-0 text-sm">@GetProductPrice(item.Code)</h6>
@@ -307,9 +279,7 @@
                     }
                 });
             });
-            setTimeout(function () {
-                setValue();
-            }, 1000);
+            setValue();
             addClasslist();
         });
         function addClasslist() {
@@ -335,24 +305,15 @@
                             text: 'Đồng ý',
                             key: ['enter'],
                             action: function () {
-                                $.ajax({
-                                    type: "POST",
-                                    url: "/Refund/ChangeStatus/",
-                                    data: JSON.stringify({ code: code }),
-                                    contentType: "application/json; charset=utf8",
-                                    success: function () {
-                                        if (currentStt == 'Chưa duyệt') {
-                                            $(element).find('span').html("Đã duyệt");
-                                            $(element).find('span').removeClass("bg-gradient-warning").addClass("bg-gradient-success");
-                                        }
-                                        else {
-                                            $(element).find('span').html("Chưa duyệt");
-                                            $(element).find('span').removeClass("bg-gradient-success").addClass("bg-gradient-warning");
-                                        }
-                                    },
-                                    error: function () {
-                                        $.alert('Chuyển trạng thái thất bại');
-                                    },
+                                $.post("/Refund/ChangeStatus", { code: code }, function () {
+                                    if (currentStt == 'Chưa duyệt') {
+                                        $(element).find('span').html("Đã duyệt");
+                                        $(element).find('span').removeClass("bg-gradient-warning").addClass("bg-gradient-success");
+                                    }
+                                    else {
+                                        $(element).find('span').html("Chưa duyệt");
+                                        $(element).find('span').removeClass("bg-gradient-success").addClass("bg-gradient-warning");
+                                    }
                                 });
                             }
                         },
@@ -365,26 +326,57 @@
                 });
             }
             else {
-                $.ajax({
-                    type: "POST",
-                    url: "/Refund/ChangeStatus/",
-                    data: JSON.stringify({ code: code }),
-                    contentType: "application/json; charset=utf8",
-                    success: function () {
-                        if (currentStt == 'Chưa duyệt') {
-                            $(element).find('span').html("Đã duyệt");
-                            $(element).find('span').removeClass("bg-gradient-warning").addClass("bg-gradient-success");
-                        }
-                        else {
-                            $(element).find('span').html("Chưa duyệt");
-                            $(element).find('span').removeClass("bg-gradient-success").addClass("bg-gradient-warning");
-                        }
-                    },
-                    error: function () {
-                        $.alert('Chuyển trạng thái thất bại');
-                    },
+                $.post("/Refund/ChangeStatus", { code: code }, function () {
+                    if (currentStt == 'Chưa duyệt') {
+                        $(element).find('span').html("Đã duyệt");
+                        $(element).find('span').removeClass("bg-gradient-warning").addClass("bg-gradient-success");
+                    }
+                    else {
+                        $(element).find('span').html("Chưa duyệt");
+                        $(element).find('span').removeClass("bg-gradient-success").addClass("bg-gradient-warning");
+                    }
                 });
             }            
+        }
+        function showDetail(element) {
+            var code = $(element).attr('id');
+            $('#tableInvoice').find('tbody').html("");
+            $.ajax({
+                url: '/Refund/GetDataRefund/',
+                type: 'GET',
+                data: { code: code },
+                success: function (result) {
+                    console.log(result);
+                    result.forEach(item => {
+                        var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.ProductName + '</span></td>"'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.Quantity + '' + item.UnitName + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber(item.Price, '.', ',') + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber((item.Price * item.Quantity), '.', ',') + '</span></td></tr>';
+                        $('#tableInvoice').find('tbody').append(htmlDetail);
+                    });
+                    $('#refundDetail h6:eq(0)').find('p').html(result[0].Time);
+                    $('#refundDetail h6:eq(1)').find('p').html(result[0].CustomerName);
+                    $('#refundDetail h6:eq(2)').find('p').html(result[0].Staff);
+                    if (result[0].Note.trim().length == 0) {
+                        $('#refundDetail h6:eq(3)').find('p').html('Không có ghi chú');
+                    }
+                    else {
+                        $('#refundDetail h6:eq(3)').find('p').html(result[0].Note);
+                    }
+                    $('#totalPrice p').find('span').html(formatNumber(result[0].Total, '.', ',') + ' VNĐ');
+                }
+            });
+        }
+        function formatNumber(nStr, decSeperate, groupSeperate) {
+            nStr += '';
+            x = nStr.split(decSeperate);
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + groupSeperate + '$2');
+            }
+            return x1 + x2;
         }
     </script>
 }

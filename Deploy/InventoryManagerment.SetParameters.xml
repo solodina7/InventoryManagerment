@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <setParameter name="IIS Web Application Name" value="Test" />
+  <setParameter name="InventoryDbContext-Web.config Connection String" value="server=103.200.23.247;database=tantuanh_inventory;username=tantuanh_inventory;password=bc7F4bGVRPF9RRW;persistsecurityinfo=True;charset=utf8" />
+  <setParameter name="BANHANGCONTEXT-Web.config Connection String" value="server=103.200.23.247;Database=tantuanh_tuanhoandb;port=3306;user=tantuanh_tantuanhoan;password=JAgRBJpk3VzDxrW;charset=utf8" />
+</parameters>

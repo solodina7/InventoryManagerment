@@ -5,47 +5,85 @@
     //HoaDon Index
     Layout = "~/Views/Shared/_Layout.cshtml";
     var db = new InventoryManagerment.Models.WINFORMS.BANHANGCONTEXT();
-    List<InventoryManagerment.Models.WINFORMS.CHITIETHOADON> GetListHoaDon(string code)
-    {
-        return db.CHITIETHOADONs.Where(x => x.MAHOADON == code).ToList();
-    }
-    InventoryManagerment.Models.WINFORMS.HOADONBAN GetHoaDon(string code)
-    {
-        return db.HOADONBANs.Where(x => x.MAHOADON == code).FirstOrDefault();
-    }
-    string ChiTietHoaDon(List<InventoryManagerment.Models.WINFORMS.CHITIETHOADON> danhsachsanpham, InventoryManagerment.Models.WINFORMS.HOADONBAN hoadon)
-    {
-        string htmlhoadon = "";
-        string dssanpham = "";
-        htmlhoadon += "<h6 class=\"text-start\">Ngày bán: <p>" + hoadon.NGAYBAN+"</p></h6>";
-        htmlhoadon += "<h6 class=\"text-start\">Tên khách hàng: <p>" + hoadon.TENKHACHHANG + "</p></h6>";
-        htmlhoadon += "<h6 class=\"text-start\">Danh sách sản phẩm</h6>";
-        foreach(var item in danhsachsanpham)
-        {
-            dssanpham+= "<tr><td class=\"align-middle text-center\"> <span class=\"text-secondary text-xs font-weight-bold\">"+item.TENSANPHAM+"</span></td>" +
-                                "<td class=\"align-middle text-center\"> <span class=\"text-secondary text-xs font-weight-bold\">"+item.SOLUONG +""+(item.DONVITINH)+"</span></td>" +
-                                "<td class=\"align-middle text-center\"> <span class=\"text-secondary text-xs font-weight-bold\">"+InventoryManagerment.Common.Functions.NumberToMoney(item.GIADONVI.ToString())+"</span></td>" +
-                                "<td class=\"align-middle text-center\"> <span class=\"text-secondary text-xs font-weight-bold\">"+InventoryManagerment.Common.Functions.NumberToMoney(item.THANHTIEN.ToString())+"</span></td></tr>";
-        }
-        htmlhoadon += "<table class=\"table align-items - center mb - 0\">" +
-                        "<thead>" +
-                            "<tr>" +
-                                "<th class=\"text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7\">Tên sản phẩm</th>" +
-                                "<th class=\"text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7\">Số lượng</th>" +
-                                "<th class=\"text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7\">Giá đơn vị</th>" +
-                                "<th class=\"text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7\">Thành tiền</th>" +
-                            "</tr>" +
-                        "</thead>" +
-                        "<tbody>" +
-                            dssanpham+
-                        "</tbody>" +
-                    "</table>";
-        htmlhoadon += "<blockquote class=\"blockquote text-center\"><p class=\"h6 text-start\">&nbsp;Tổng tiền: <span>" + InventoryManagerment.Common.Functions.NumberToMoney(hoadon.TONGTIEN.ToString())+ "</span></p></blockquote>";
-        htmlhoadon += "<blockquote class=\"blockquote text-center\"><p class=\"h6 text-start\">&nbsp;Đã thanh toán: <span>" + InventoryManagerment.Common.Functions.NumberToMoney((hoadon.TONGTIEN-hoadon.DEPT).ToString()) + "</span></p></blockquote>";
-        htmlhoadon += "<blockquote class=\"blockquote text-center\"><p class=\"h6 text-start\">&nbsp;Còn nợ: <span>" + InventoryManagerment.Common.Functions.NumberToMoney(hoadon.DEPT.ToString()) + "</span></p></blockquote>";
-        return htmlhoadon;
-    }
 }
+    <!-- Modal Detail-->
+    <div class="modal fade" id="InvoiceDetail" tabindex="-1" role="dialog" aria-labelledby="InvoiceDetailLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-normal" id="InvoiceDetailLabel">Hóa đơn</h5>
+                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div id="detailBill" class="modal-body font-weight-light">
+                    <h6 class="text-start">Ngày bán:<p>...</p></h6>
+                    <h6 class="text-start">Tên khách hàng: <p>...</p></h6>
+                    <h6 class="text-start">Danh sách sản phẩm</h6>
+                    <table id="tableInvoice" class="table align-items - center mb - 0">
+                        <thead>
+                            <tr>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá đơn vị</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <blockquote id="totalPrice" class="blockquote text-center"><p class="h6 text-start">&nbsp;Tổng tiền: <span>...</span></p></blockquote>
+                    <blockquote id="prePayment" class="blockquote text-center"><p class="h6 text-start">&nbsp;Đã thanh toán: <span>...</span></p></blockquote>
+                    <blockquote id="deptPayment" class="blockquote text-center"><p class="h6 text-start">&nbsp;Còn nợ: <span>...</span></p></blockquote>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm hóa đơn</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Index", "Bill", method: FormMethod.Get))
+                {
+                    <div class="input-group mb-3">
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tên khách hàng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.nameProduct" name="nameProduct">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tổng tiền" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.totalPrice" name="totalPrice">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateBill" id="dateBill" name="dateBill">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <select name="pageSize" class="form-control">
+                                <option value="10">Số dòng hiển thị</option>
+                                @for (int i = 15; i <= 100; i += 5)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                        <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                        <span class="btn-inner--text">Tìm kiếm</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row" id="productList">
     <div class="col-12">
         <div class="card my-4">
@@ -61,51 +99,6 @@
             </div>
             <div class="card-body px-0 pb-2">
                 <div class="px-2 mb-1">
-                    <!-- Modal -->
-                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm hóa đơn</h5>
-                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    @using (Html.BeginForm("Index", "Bill", method: FormMethod.Get))
-                                    {
-                                    <div class="input-group mb-3">
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tên khách hàng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.nameProduct" name="nameProduct">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tổng tiền" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.totalPrice" name="totalPrice">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateBill" id="dateBill" name="dateBill">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <select name="pageSize" class="form-control">
-                                                <option value="10">Số dòng hiển thị</option>
-                                                @for (int i = 15; i <= 100; i += 5)
-                                                {
-                                                    <option value="@i">@i</option>
-                                                }
-                                            </select>
-                                        </div>
-                                    </div>
-                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
-                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
-                                            <span class="btn-inner--text">Tìm kiếm</span>
-                                        </button>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="table-responsive p-0">
                     <table class="table align-items-center mb-0" id="tbl_Product">
@@ -122,47 +115,32 @@
                         <tbody>
                             @foreach (var item in Model)
                             {
-                            <tr>
-                                <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">@item.NGAYBAN</span>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">@item.TENKHACHHANG</span>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(item.TONGTIEN.ToString())</span>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(item.DEPT.ToString())</span>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney((item.TONGTIEN - item.DEPT).ToString())</span>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#hoadon_@item.MAHOADON"><i class="material-icons text-sm me-2">visibility</i> Xem chi tiết</a></span>
-                                    <div class="modal fade" id="hoadon_@item.MAHOADON" tabindex="-1" role="dialog" aria-labelledby="hoadon_@item.MAHOADON" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Hóa đơn</h5>
-                                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body font-weight-light">
-                                                    @Html.Raw(ChiTietHoaDon(GetListHoaDon(item.MAHOADON),GetHoaDon(item.MAHOADON)))
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr id="row_@item.MAHOADON">
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold">@item.NGAYBAN</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold">@item.TENKHACHHANG</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(item.TONGTIEN.ToString())</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(item.DEPT.ToString())</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney((item.TONGTIEN - item.DEPT).ToString())</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-xs font-weight-bold"><a id="@item.MAHOADON" onclick="showDetail(this)" class="btnViewDetail" href="javascript:;" data-bs-toggle="modal" data-bs-target="#InvoiceDetail"><i class="material-icons text-sm me-2">visibility</i> Xem chi tiết</a></span>
+                                    </td>
+                                </tr>
                             }
                         </tbody>
-                    </table> 
+                    </table>
                     <div style="text-align:center">
                         <div style="display:inline-block" id="listPaginationProduct">
-                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,nameProduct = ViewBag.nameProduct,totalPrice=ViewBag.totalPrice, dateBill = ViewBag.dateBill,pageSize = ViewBag.pageSize }))
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString, nameProduct = ViewBag.nameProduct, totalPrice = ViewBag.totalPrice, dateBill = ViewBag.dateBill, pageSize = ViewBag.pageSize }))
                         </div>
                     </div>
                 </div>
@@ -175,6 +153,42 @@
         $(document).ready(function () {
             addClasslist();
         });
+        function showDetail(element) {
+            var code = $(element).attr('id');
+            $('#tableInvoice').find('tbody').html("");
+            $.ajax({
+                url: '/Bill/GetDataBill/',
+                type: 'GET',
+                data: { code: code },
+                success: function (result) {
+                    console.log(result);
+                    result.forEach(item => {
+                        var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.TENSANPHAM + '</span></td>"'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.SOLUONG + '' + item.DONVITINH + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber(item.GIADONVI,'.',',') + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber(item.THANHTIEN, '.', ',') + '</span></td></tr>';
+                        $('#tableInvoice').find('tbody').append(htmlDetail);
+                    });
+                    $('#detailBill h6:eq(0)').find('p').html(result[0].NGAYBAN);
+                    $('#detailBill h6:eq(1)').find('p').html(result[0].TENKHACHHANG);
+                    $('#totalPrice p').find('span').html(formatNumber(result[0].TONGTIEN, '.', ','));
+                    $('#prePayment p').find('span').html(formatNumber((result[0].TONGTIEN - result[0].DEPT), '.', ','));
+                    $('#deptPayment p').find('span').html(formatNumber(result[0].DEPT,'.',','));
+
+                }
+            });
+        }
+        function formatNumber(nStr, decSeperate, groupSeperate) {
+            nStr += '';
+            x = nStr.split(decSeperate);
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + groupSeperate + '$2');
+            }
+            return x1 + x2;
+        }
         function addClasslist() {
             $('#listPaginationProduct ul li').each(function () {
                 $(this).addClass('page-item');

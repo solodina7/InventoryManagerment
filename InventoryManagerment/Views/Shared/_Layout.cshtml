@@ -1,14 +1,14 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png">
-    <link rel="icon" type="image/png" href="./assets/img/favicon.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="~/assets/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="~/assets/img/favicon.png">
     <title>
         @ViewBag.Title
     </title>
-    <!--     Fonts and icons     -->
+    <!--Fonts and icons-->
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
     <!-- Nucleo Icons -->
     <link href="~/assets/css/nucleo-icons.css" rel="stylesheet" />
@@ -22,10 +22,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <link href="~/Assets/css/bootstrap-datepicker.css" rel="stylesheet" />
 </head>
-@{ 
+@{
     var user = (InventoryManagerment.Models.EF.User)Session[InventoryManagerment.Common.CommonConstants.USER_SESSION];
 }
-<body class="g-sidenav-show  bg-gray-100">
+<body class="g-sidenav-show bg-gray-100">
+    <!--Spinner-->
+    <div class="preloader-wrapper">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
     <!--LeftMenu-->
     @if (user.RoleID == 1)
     {
@@ -85,6 +91,12 @@
     <script src="~/assets/js/plugins/perfect-scrollbar.min.js"></script>
     <script src="~/assets/js/plugins/smooth-scrollbar.min.js"></script>
     <script src="~/assets/js/plugins/chartjs.min.js"></script>
+    <script>
+        const preloaderWrapper = document.querySelector('.preloader-wrapper');
+        window.addEventListener('load', function () {
+            preloaderWrapper.classList.add('fade-out-animation');
+        });
+    </script>
     <style>
         .ps__railx-x {
             display: none !important;
@@ -120,6 +132,40 @@
         }
         function getPackageProduct(text) {
             return text.substring(text.lastIndexOf('|') + 1, text.length).trim();
+        }
+    </script>
+    <script>
+        $('#btnSetting').click(function () {
+            if ($('#menu-settings').css('display') == 'none') {
+                $('#menu-settings').slideDown();
+            }
+            else {
+                $('#menu-settings').slideUp();
+            }
+        });
+        $('#btnBillandNote').click(function () {
+            if ($('#menu-billandnote').css('display') == 'none') {
+                $('#menu-billandnote').slideDown();
+            }
+            else {
+                $('#menu-billandnote').slideUp();
+            }
+        });
+        function myFunction() {
+            document.getElementById("myDropdown").classList.toggle("showx");
+        }
+        window.onclick = function (event) {
+            if (!event.target.matches('.dropdown-toggle')) {
+
+                var dropdowns = document.getElementsByClassName("dropdown-contentx");
+                var i;
+                for (i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('showx')) {
+                        openDropdown.classList.remove('showx');
+                    }
+                }
+            }
         }
     </script>
     @RenderSection("jsFooter", false)

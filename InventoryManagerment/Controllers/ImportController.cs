@@ -61,6 +61,14 @@ namespace InventoryManagerment.Controllers
             new DataAccess().InsertProduct(product, GetUserName());
             return Json("",JsonRequestBehavior.AllowGet);
         }
+        [HttpPost]
+        public void CreateSupplier (string name,string code)
+        {
+            var model = new Supplier();
+            model.Name = name;
+            model.Code = code;
+            new DataAccess().InsertSupplier(model,GetUserName());
+        }
         [HttpGet]
         public ActionResult Edit(long id) 
         { 
@@ -92,6 +100,12 @@ namespace InventoryManagerment.Controllers
         {
             new DataAccess().DeleteImport(id,GetUserName());
             return RedirectToAction("Index");
+        }
+        [HttpGet]
+        public JsonResult GetDataImport(string code)
+        {
+            var listImport = new DataAccess().GetDataImport(code);
+            return Json(listImport, JsonRequestBehavior.AllowGet);
         }
         public void SetViewBag(long? id = null)
         {

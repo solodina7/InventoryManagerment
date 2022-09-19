@@ -34,10 +34,7 @@ namespace InventoryManagerment.Controllers
             {
                 stt = null;
             }
-            if (pageSize > 10)
-            {
-                ViewBag.pageSize = pageSize;
-            }
+            ViewBag.pageSize = pageSize;
             if (dateRefund.HasValue)
             {
                 ViewBag.dateRefund = dateRefund.Value.ToString("yyyy-MM-dd");
@@ -129,11 +126,16 @@ namespace InventoryManagerment.Controllers
             ViewBag.Product = new DataAccess().ListAllProductToViewBag();
             ViewBag.Customer = new DataAccess().ListtAllCustomerToViewBag();
         }
-        public ActionResult ChangeStatus(string code)
+        public void ChangeStatus(string code)
         {
             code = code.Substring(1, code.Length - 1);
             new DataAccess().ChangeStatus(code, "refund");
-            return RedirectToAction("Index");
+        }
+        [HttpGet]
+        public JsonResult GetDataRefund(string code)
+        {
+            var listRefund = new DataAccess().GetDataRefund(code);
+            return Json(listRefund, JsonRequestBehavior.AllowGet);
         }
     }
 }

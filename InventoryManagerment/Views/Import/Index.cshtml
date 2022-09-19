@@ -9,9 +9,10 @@
     string GetProductPrice(string Code)
     {
         var db = new InventoryDbContext();
-        var list = db.ImportDetails.Where(x=>x.ImportCode==Code).ToList();
+        var list = db.ImportDetails.Where(x => x.ImportCode == Code).ToList();
         decimal sum = 0;
-        foreach (var item in list) {
+        foreach (var item in list)
+        {
             sum += (item.ImportPrice * item.Quantity);
         }
         return InventoryManagerment.Common.Functions.NumberToMoney(sum.ToString());
@@ -63,7 +64,39 @@
         }
 
     }
-    }
+}
+<!-- Modal -->
+<div class="modal fade" id="importDetail" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="importModalLabel">Phiếu xuất</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-start">Ngày xuất:<p>...</p></h6>
+                <h6 class="text-start">Nhà cung cấp: <p>...</p></h6>
+                <h6 class="text-start">Ghi chú: <p>...</p></h6>
+                <h6 class="text-start">Danh sách sản phẩm</h6>
+                <table id="tableInvoice" class="table align-items - center mb - 0">
+                    <thead>
+                        <tr>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá đơn vị</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <blockquote id="totalPrice" class="blockquote text-center"><p class="h6 text-start">&nbsp;Tổng tiền: <span>...</span></p></blockquote>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card my-4">
@@ -73,7 +106,7 @@
                         <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách phiếu nhập</h6>
                     </div>
                     <div class="col-6 text-end">
-                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal" ><i class="material-icons text-sm">search</i></a>
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons text-sm">search</i></a>
                         <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" href="/Import/Create"><i class="material-icons text-sm">add</i></a>
                     </div>
                 </div>
@@ -93,29 +126,29 @@
                                 <div class="modal-body">
                                     @using (Html.BeginForm("Index", "Import", method: FormMethod.Get))
                                     {
-                                    <div class="input-group mb-3">
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tên nhà cung cấp" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                        <div class="input-group mb-3">
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập tên nhà cung cấp" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.note" name="note">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.productName" name="productName">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateImport" id="dateImport" name="dateImport">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <select name="pageSize" class="form-control">
+                                                    <option value="10">Số dòng hiển thị</option>
+                                                    @for (int a = 15; a <= 100; a += 5)
+                                                    {
+                                                        <option value="@a">@a</option>
+                                                    }
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.note" name="note">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.productName" name="productName">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateImport" id="dateImport" name="dateImport">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <select name="pageSize" class="form-control">
-                                                <option value="10">Số dòng hiển thị</option>
-                                                @for (int a = 15; a <= 100; a += 5)
-                                                {
-                                                    <option value="@a">@a</option>
-                                                }
-                                            </select>
-                                        </div>
-                                    </div>
                                         <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
                                             <span class="btn-inner--icon"><i class="material-icons">search</i></span>
                                             <span class="btn-inner--text">Tìm kiếm</span>
@@ -124,7 +157,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>                  
+                    </div>
                 </div>
                 <div class="table-responsive p-0">
                     <table id="tbl_Export" class="table align-items-center mb-0">
@@ -143,85 +176,41 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                            <tr id="row_@item.ID">
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@i</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@item.Time.ToString("dd/MM/yyyy | HH:mm")</h6>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@item.NameSupplier</h6>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#import_@item.Code"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>                                   
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="import_@item.Code" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Chi tiết sản phẩm</h5>
-                                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <table class="table align-items-center mb-0" id="tbl_Product">
-                                                        <thead>
-                                                            <tr>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đơn giá</th>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
-                                                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach (var items in GetListProduct(item.Code))
-                                                            {
-                                                            <tr>
-                                                                <td class="align-middle text-center">
-                                                                    <span class="text-secondary text-xs font-weight-bold">@GetNameProduct(items.ProductCode)</span>
-                                                                </td>
-                                                                <td class="align-middle text-center">
-                                                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(items.ImportPrice.ToString()) VNĐ</span>
-                                                                </td>
-                                                                <td class="align-middle text-center">
-                                                                    <span class="text-secondary text-xs font-weight-bold">@items.Quantity @GetNameUnit(items.UnitID)</span>
-                                                                </td>
-                                                                <td class="align-middle text-center">
-                                                                    <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney((items.Quantity*items.ImportPrice).ToString())</span>
-                                                                </td>
-                                                            </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                <tr id="row_@item.ID">
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@i</h6>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@GetProductPrice(item.Code)</h6>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@GetNote(item.Note)</h6>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <a href="/Import/Edit/@item.ID"><i class="material-icons">edit_note</i></a>                                  
-                                    <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@item.Time.ToString("dd/MM/yyyy | HH:mm")</h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@item.NameSupplier</h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a id="@item.Code" onclick="showDetail(this)" class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#importDetail"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@GetProductPrice(item.Code)</h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@GetNote(item.Note)</h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a href="/Import/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
+                                        <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
+                                    </td>
+                                </tr>
                                 i++;
                             }
                         </tbody>
                     </table>
                     <div style="text-align:center">
                         <div id="listPagination" style="display:inline-block">
-                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,note = ViewBag.note, productName= ViewBag.productNamem, dateImport = ViewBag.dateImport,pageSize = ViewBag.pageSize }))
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString, note = ViewBag.note, productName = ViewBag.productNamem, dateImport = ViewBag.dateImport, pageSize = ViewBag.pageSize }))
                         </div>
                     </div>
                 </div>
@@ -273,6 +262,45 @@
                 $(this).addClass('page-item');
                 $(this).find('a').addClass('page-link')
             });
-        }        
+        }
+        function showDetail(element) {
+            var code = $(element).attr('id');
+            $('#tableInvoice').find('tbody').html("");
+            $.ajax({
+                url: '/Import/GetDataImport/',
+                type: 'GET',
+                data: { code: code },
+                success: function (result) {
+                    console.log(result);
+                    result.forEach(item => {
+                        var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.ProductName + '</span></td>"'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.Quantity + '' + item.UnitName + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber(item.Price, '.', ',') + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber((item.Price * item.Quantity), '.', ',') + '</span></td></tr>';
+                        $('#tableInvoice').find('tbody').append(htmlDetail);
+                    });
+                    $('#importDetail h6:eq(0)').find('p').html(result[0].Time);
+                    $('#importDetail h6:eq(1)').find('p').html(result[0].SupplierName);
+                    if (result[0].Note.trim().length == 0) {
+                        $('#importDetail h6:eq(2)').find('p').html('Không có ghi chú');
+                    }
+                    else {
+                        $('#importDetail h6:eq(2)').find('p').html(result[0].Note);
+                    }
+                    $('#totalPrice p').find('span').html(formatNumber(result[0].Total, '.', ',') + ' VNĐ');
+                }
+            });
+        }
+        function formatNumber(nStr, decSeperate, groupSeperate) {
+            nStr += '';
+            x = nStr.split(decSeperate);
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + groupSeperate + '$2');
+            }
+            return x1 + x2;
+        }
     </script>
 }

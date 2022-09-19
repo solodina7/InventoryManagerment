@@ -437,6 +437,7 @@
     <Content Include="Assets\scss\material-dashboard\_utilities-extend.scss" />
     <Content Include="Assets\scss\material-dashboard\_utilities.scss" />
     <Content Include="Assets\scss\material-dashboard\_variables.scss" />
+    <None Include="Properties\PublishProfiles\IISProfile.pubxml" />
     <None Include="Scripts\jquery-1.8.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.0.js" />
     <Content Include="Scripts\jquery-1.8.0.min.js" />
@@ -507,10 +508,14 @@
     <Compile Include="Models\WINFORMS\HoaDonBanModel.cs" />
     <Compile Include="Models\WINFORMS\NOTES.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModel\BillModel.cs" />
     <Compile Include="ViewModel\BillViewModel.cs" />
+    <Compile Include="ViewModel\ExportModel.cs" />
     <Compile Include="ViewModel\ExportViewModel.cs" />
+    <Compile Include="ViewModel\ImportModel.cs" />
     <Compile Include="ViewModel\ImportViewModel.cs" />
     <Compile Include="ViewModel\ReceiptViewModel.cs" />
+    <Compile Include="ViewModel\RefundModel.cs" />
     <Compile Include="ViewModel\RefundViewModel.cs" />
     <Compile Include="ViewModel\SupplierViewModel.cs" />
   </ItemGroup>

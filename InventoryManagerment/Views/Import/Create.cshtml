@@ -53,6 +53,33 @@
         sb.Append(" </script>");
         return sb.ToString();
     }
+    string addListSupplier()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataSupplier = new Array();");
+        foreach (var item in db.Suppliers.ToList())
+        {
+            sb.Append($" dataSupplier.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string addSupplierModel()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var listSupplier = new Array();");
+        foreach (var item in db.Suppliers.ToList())
+        {
+            sb.Append(" var ModelSupplier = {};");
+            sb.Append($" ModelSupplier.Name ='{item.Name}';");
+            sb.Append($" ModelSupplier.Code ='{item.Code}';");
+            sb.Append($" listSupplier.push(ModelSupplier);");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
 }
 <div class="row">
     <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
@@ -62,13 +89,7 @@
     </div>
     <div class="input-group input-group-static my-3">
         <label>Nhà cung cấp</label>
-        <select id="txtSupplier" class="form-control" autofocus>
-            <option value="chuachon">Chọn nhà cung cấp</option>
-            @foreach (var item in listSupplier)
-            {
-                <option value="@item.ID">@item.Name</option>
-            }
-        </select>
+        <input name="txtSupplier" id="txtSupplier" class="form-control" />
     </div>
     <div class="input-group input-group-static my-3">
         <label>Ghi chú</label>
@@ -155,61 +176,87 @@
                 </button>
             </div>
             <div class="modal-body">
-                    <div class="input-group input-group-static my-3">
-                        <label>Tên sản phẩm</label>
-                        <input id="txtNameProduct" class="form-control" />
-                    </div>
+                <div class="input-group input-group-static my-3">
+                    <label>Tên sản phẩm</label>
+                    <input id="txtNameProduct" class="form-control" />
+                </div>
 
-                    <div class="input-group input-group-static my-3">
-                        <label>Loại sản phẩm</label>
-                        <select id="txtCategoryID" class="form-control">
-                            @foreach(var item in listCategory) 
-                            { 
-                                <option value="@item.ID">@item.Name</option>
-                            }
-                        </select>
-                    </div>
+                <div class="input-group input-group-static my-3">
+                    <label>Loại sản phẩm</label>
+                    <select id="txtCategoryID" class="form-control">
+                        @foreach (var item in listCategory)
+                        {
+                            <option value="@item.ID">@item.Name</option>
+                        }
+                    </select>
+                </div>
 
-                    <div class="input-group input-group-static my-3">
-                        <label>Giá</label>
-                        <input class="form-control" id="txtPriceProduct" />
-                    </div>
+                <div class="input-group input-group-static my-3">
+                    <label>Giá</label>
+                    <input class="form-control" id="txtPriceProduct" />
+                </div>
 
-                    <div class="input-group input-group-static my-3">
-                        <label>Đơn vị tính</label>
-                        <select class="form-control" id="txtUnitProduct">
-                            @foreach(var item in listUnit) 
-                            {
-                                <option value="@item.ID">@item.Name</option>
-                            }
-                        </select>
-                    </div>
+                <div class="input-group input-group-static my-3">
+                    <label>Đơn vị tính</label>
+                    <select class="form-control" id="txtUnitProduct">
+                        @foreach (var item in listUnit)
+                        {
+                            <option value="@item.ID">@item.Name</option>
+                        }
+                    </select>
+                </div>
 
-                    <div class="input-group input-group-static my-3">
-                        <label>Cách đóng gói</label>
-                        <select class="form-control" id="txtPackageProduct">
-                            @foreach(var item in listPackage) 
-                            {
-                                <option value="@item.ID">@item.Name</option>
-                            }
-                        </select>
-                    </div>
+                <div class="input-group input-group-static my-3">
+                    <label>Cách đóng gói</label>
+                    <select class="form-control" id="txtPackageProduct">
+                        @foreach (var item in listPackage)
+                        {
+                            <option value="@item.ID">@item.Name</option>
+                        }
+                    </select>
+                </div>
 
-                    <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
-                        <label>Số lượng tối thiểu</label>
-                        <input class="form-control" id="txtAlertQuantity" />
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button id="btnSaveProduct" type="submit" data-bs-dismiss="modal" class="btn bg-gradient-primary">Lưu sản phẩm</button>
-                    </div>
+                <div style="margin-top:40px !important;" class="input-group input-group-static my-3">
+                    <label>Số lượng tối thiểu</label>
+                    <input class="form-control" id="txtAlertQuantity" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button id="btnSaveProduct" type="submit" data-bs-dismiss="modal" class="btn bg-gradient-primary">Lưu sản phẩm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="supplierModal" tabindex="-1" role="dialog" aria-labelledby="supplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="supplierModalLabel">Thêm sản phẩm mới</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group input-group-static my-3">
+                    <label>Tên nhà cung cấp</label>
+                    <input name="txtNameSupplier" id="txtNameSupplier" class="form-control" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button id="btnSaveSupplier" type="submit" data-bs-dismiss="modal" class="btn bg-gradient-primary">Lưu nhà cung cấp</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @section jsFooter{
     @Html.Raw(addListProduct())
-<script>
+    @Html.Raw(addListSupplier())
+    @Html.Raw(addSupplierModel())
+    @Html.Raw(addProductModel())
+    <script>
                 $(document).ready(function () {
                     $("#btnAddProduct").click(function () {
                         AddProductRecord();
@@ -220,7 +267,11 @@
                     $("#btnSaveProduct").click(function () {
                         AddNewProduct();
                     });
+                    $("#btnSaveSupplier").click(function () {
+                        AddNewSupplier();
+                    });
                     AutoComplete(dataProduct, $('#txtProductName'));
+                    AutoComplete(dataSupplier, $('#txtSupplier'));
                     $('#txtQuantity').focusout(function () {
                         var text = $('#txtQuantity').val();
                         if (!$.isNumeric(text)) {
@@ -257,7 +308,26 @@
                             $('#txtPackage').val(packageid);
                         }
                         else if (jQuery.inArray(text, dataProduct) == -1) {
-                            $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này bạn có muốn thêm mới không ? <a onclick="setName()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert()">X</a></label><div>');
+                            hideAlert($('#txtSupplier'));
+                            $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này bạn có muốn thêm mới không ? <a onclick="setName()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert(document.getElementById("txtProductName"))">X</a></label><div>');
+                        }
+                    });
+                    $('#txtSupplier').focusout(function () {
+                        if ($('#txtSupplier').val().trim().length > 0) {
+                            var nameSupplier = $('#txtSupplier').val().trim();
+                            var count = 0;
+                            listSupplier.forEach(item => {
+                                if (item.Name == nameSupplier) {
+                                    count += 1;
+                                    return false;
+                                }
+                            });
+                            if (count == 0) {
+                                hideAlert($('#txtSupplier'));
+                                $('div.container-fluid div.row:eq(0) div.input-group:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có nhà cung cấp này bạn có muốn thêm mới không ? <a onclick="setNameSupplier()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#supplierModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert($(\'#txtSupplier\'))">X</a></label><div>');
+                            } else {
+                                hideAlert($('#txtSupplier'));
+                            }
                         }
                     });
                 });
@@ -265,8 +335,15 @@
             var name = $('#txtProductName').val();
             $('#txtNameProduct').val(name);
         }
-        function hideAlert() {
+        function setNameSupplier() {
+            var name = $('#txtSupplier').val();
+            $('#txtNameSupplier').val(name);
+        }
+        function hideAlert(element) {
             $('.tatsau1s').hide(1000, "linear");
+            if (element != null) {
+                element.val("");
+            }            
         }
         function editproduct(element) {
             var row = $(element).closest("tr");
@@ -402,8 +479,11 @@
                     i++;
                     return;
                 }
-
             });
+            if (jQuery.inArray($('#txtSupplier').val(),dataSupplier)==-1) {
+                $.alert("Vui lòng thêm mới nhà cung cấp này hoặc chọn nhà cung cấp có sẵn");
+                return;
+            }
             if (i > 0) {
                 $.alert("Vui lòng hoàn tất việc chỉnh sửa");
                 return;
@@ -415,14 +495,20 @@
                 var UnitID = $(this).find("td:eq(3)").attr('id');
                 var PackageID = $(this).find("td:eq(4)").attr('id');
                 var Time = $("#txtTime").val();
-                var SupplierID = $("#txtSupplier option:selected").val();
+                var SupplierName = $('#txtSupplier').val();
+                var SupplierCode = "";
+                listSupplier.forEach(item => {
+                    if (item.Name == SupplierName) {
+                        SupplierCode = item.Code;
+                    }
+                });
                 var Note = $("#txtNote").val();
                 var ProductModel = {};
                 ProductModel.Price = Price;
                 ProductModel.Quantity = Quantity;
                 ProductModel.ProductCode = Code;
                 ProductModel.Time = Time;
-                ProductModel.SupplierID = SupplierID;
+                ProductModel.SupplierCode = SupplierCode;
                 ProductModel.Note = Note;
                 ProductModel.UnitID = UnitID;
                 ProductModel.PackageID = PackageID;
@@ -526,8 +612,24 @@
                     $.alert("Thêm sản phẩm thất bại");
                 }
             });
+        }
+        function addSupplierModel(name,code,listSupplier,dataSupplier) {
+            var ModelSupplier = {}
+            ModelSupplier.Name = name;
+            ModelSupplier.Code = code;
+            listSupplier.push(ModelSupplier);
+            dataSupplier.push(name);
+        }
+        function AddNewSupplier() {
+            var nameSupplier = $('#txtNameSupplier').val();
+            var codeSupplier = '@InventoryManagerment.Common.Functions.CreateCode("SUP")';
+            $.post('/Import/CreateSupplier/', { name: nameSupplier, code: codeSupplier }, function () {
+                $.alert("Thêm nhà cung cấp thành công");
+                $('#txtNameSupplier').val("");
+                addSupplierModel(nameSupplier, codeSupplier, listSupplier, dataSupplier);
+                hideAlert();
+                $('#txtSupplier').focus();
+            });
         };
-
-</script>
-    @Html.Raw(addProductModel())
+    </script>
 }

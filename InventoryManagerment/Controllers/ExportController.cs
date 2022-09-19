@@ -112,17 +112,22 @@ namespace InventoryManagerment.Controllers
             return RedirectToAction("Index");
         }
         [HttpPost]
-        public ActionResult ChangeStatus(string code)
+        public void ChangeStatus(string code)
         {
             code = code.Substring(1, code.Length-1);
             new DataAccess().ChangeStatus(code,"export");
-            return RedirectToAction("Index");
         }
         public void SetViewBag()
         {
             ViewBag.Unit = new DataAccess().ListAllUnitToViewBag();
             ViewBag.Product = new DataAccess().ListAllProductToViewBag();
             ViewBag.Customer = new DataAccess().ListtAllCustomerToViewBag();
+        }
+        [HttpGet]
+        public JsonResult GetDataExport(string code)
+        {
+            var listData = new DataAccess().GetDataExport(code);
+            return Json(listData,JsonRequestBehavior.AllowGet);
         }
     }
 }

@@ -127,5 +127,28 @@ namespace InventoryManagerment
                          };
             return ketqua.OrderByDescending(x=>x.STT).ToPagedList(page, pageSize);          
         }
+        public List<BillModel> GetListBill(string code)
+        {
+            List<BillModel> listBill = new List<BillModel>();
+            var hoadonban = db.HOADONBANs.Where(x => x.MAHOADON == code).FirstOrDefault();
+            var danhsachchitiet = db.CHITIETHOADONs.Where(x => x.MAHOADON == code).ToList();
+            foreach(var item in danhsachchitiet)
+            {
+                var model = new BillModel();
+                model.DEPT = hoadonban.DEPT;
+                model.DONVITINH = item.DONVITINH;
+                model.GIADONVI = item.GIADONVI;
+                model.MAHOADON = item.MAHOADON;
+                model.NGAYBAN = hoadonban.NGAYBAN;
+                model.SOLUONG = item.SOLUONG;
+                model.STT = hoadonban.STT;
+                model.THANHTIEN = item.THANHTIEN;
+                model.TENKHACHHANG = hoadonban.TENKHACHHANG;
+                model.TENSANPHAM = item.TENSANPHAM;
+                model.TONGTIEN = hoadonban.TONGTIEN;
+                listBill.Add(model);
+            }
+            return listBill;
+        }
     }
 }

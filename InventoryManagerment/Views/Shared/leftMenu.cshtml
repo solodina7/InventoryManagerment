@@ -60,49 +60,66 @@
                     <span class="nav-link-text ms-1">Quản lý kho</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <hr class="horizontal light mt-0 mb-2">
+            </li>
+            <!--Quản lý hóa đơn và sổ xuất-->
+            <li class="nav-item" id="btnBillandNote">
+                <a class="nav-link text-white dropdown-toggle">
+                    <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="material-icons opacity-10">task</i>
+                    </div>
+                    <span class="nav-link-text ms-1">Hóa đơn và sổ xuất</span>
+                </a>
+            </li>
+            <div id="menu-billandnote" style="display:none;">
             <!--Quản lý sổ xuất-->
             <li class="nav-item">
                 <a class="nav-link text-white " href="/Note" target="_self">
 
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                        <i class="material-icons opacity-10">description</i>
+                        <i class="material-icons opacity-10">menu_book</i>
                     </div>
 
-                    <span class="nav-link-text ms-1">Quản lý sổ xuất</span>
+                    <span class="nav-link-text ms-1">Sổ xuất</span>
                 </a>
             </li>
             <!--Quản lý hóa đơn-->
             <li class="nav-item">
                 <a class="nav-link text-white " href="/Bill" target="_self">
-
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="material-icons opacity-10">receipt</i>
                     </div>
-
-                    <span class="nav-link-text ms-1">Quản lý hóa đơn</span>
+                    <span class="nav-link-text ms-1">Hóa đơn</span>
                 </a>
             </li>
-            <!--Quản lý nhà cung cấp-->
+            </div>
+            <li class="nav-item"><hr class="horizontal light mt-0 mb-2"></li>
+            <!--Quản lý hệ thống-->
+            <li class="nav-item" id="btnSetting">
+                <a class="nav-link text-white dropdown-toggle">
+                    <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="material-icons opacity-10">settings</i>
+                    </div>
+                    <span class="nav-link-text ms-1">Hệ thống</span>
+                </a>
+            </li>
+
+            <div id="menu-settings" style="display:none;">
             <li class="nav-item">
                 <a class="nav-link text-white " href="/Supplier" target="_self">
-
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="material-icons opacity-10">person_add</i>
-                    </div>
-
-                    <span class="nav-link-text ms-1">Nhà cung cấp</span>
+                    </div><span class="nav-link-text ms-1">Nhà cung cấp</span>
                 </a>
             </li>
-            <!--Quản lý sản phẩm-->
             <li class="nav-item">
                 <a class="nav-link text-white " href="/Product" target="_self">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="material-icons opacity-10">inventory_2</i>
-                    </div>
-                    <span class="nav-link-text ms-1">Sản phẩm</span>
+                    </div><span class="nav-link-text ms-1">Sản phẩm</span>
                 </a>
             </li>
-            <!--Quản lý đơn vị tính-->
             <li class="nav-item">
                 <a class="nav-link text-white " href="/Unit" target="_self">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
@@ -111,33 +128,28 @@
                     <span class="nav-link-text ms-1">Đơn vị tính</span>
                 </a>
             </li>
-            <!--Quản lý loại sản phẩm-->
             <li class="nav-item">
                 <a class="nav-link text-white " href="/ProductCategory" target="_self">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="material-icons opacity-10">category</i>
-                    </div>
-                    <span class="nav-link-text ms-1">Loại sản phẩm</span>
+                    </div><span class="nav-link-text ms-1">Loại sản phẩm</span>
                 </a>
             </li>
-            <!--Quản lý đóng gói-->
             <li class="nav-item">
                 <a class="nav-link text-white " href="/Package" target="_self">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="material-icons opacity-10">redeem</i>
-                    </div>
-                    <span class="nav-link-text ms-1">Đóng gói</span>
+                    </div><span class="nav-link-text ms-1">Đóng gói</span>
                 </a>
             </li>
-            <!--Quản lý khách hàng-->
             <li class="nav-item">
-                <a class="nav-link text-white " href="/Customer" target="_self">
+                <a class="nav-link text-white" href="/Customer" target="_self">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="material-icons opacity-10">face</i>
-                    </div>
-                    <span class="nav-link-text ms-1">Khách hàng</span>
+                    </div><span class="nav-link-text ms-1">Khách hàng</span>
                 </a>
             </li>
+</div>
         </ul>
     </div>
 </aside>

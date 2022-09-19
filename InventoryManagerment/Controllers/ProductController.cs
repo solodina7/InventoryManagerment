@@ -12,10 +12,10 @@ namespace InventoryManagerment.Controllers
     {
         // GET: Product
         [HttpGet]
-        public ActionResult Index(string searchString,long typeProduct=0,int page =1,int pageSize = 10)
+        public ActionResult Index(string searchString,long quantity = 0,long typeProduct=0,int page =1,int pageSize = 10)
         {
             var dao = new DataAccess();
-            var model = dao.ListAllProductOnPagedlist(searchString,typeProduct,page,pageSize);
+            var model = dao.ListAllProductOnPagedlist(searchString,quantity,typeProduct,page,pageSize);
             ViewBag.searchProductString = searchString;
             TempData[Common.CommonConstants.PAGE_NAME] = "Sản phẩm";
             ViewBag.Title = "Tuấn Hoan - Sản Phẩm";

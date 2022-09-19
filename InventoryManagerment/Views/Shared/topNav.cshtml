@@ -21,33 +21,23 @@
                 </li>
                 <li class="nav-item d-xl-none ps-3 d-flex align-items-center"> </li>
                 <li class="nav-item d-flex align-items-center">
-                    @if (user == null)
-                    {
-                        <a href="/Login" class="nav-link font-weight-bold px-0 text-body">
+                    <div class="dropdownx">
+                        <a onclick="myFunction()" style="cursor:pointer;" class="dropdown-toggle">
                             <i class="fa fa-user me-sm-1"></i>
-                            <span class="d-sm-inline d-none">Đăng nhập</span>
+                            @user.Name
                         </a>
-                    }
-                    else
-                    {
-                        <div class="dropdown">  
-                            <a style="cursor:pointer;" class="dropdown-toggle" data-bs-toggle="dropdown" id="userdropdown" aria-expanded="false">
-                                <i class="fa fa-user me-sm-1"></i>
-                                @user.Name
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="userdropdown">
-                                @if (user.RoleID == 1)
-                                {
-                                    <li class="dropdown-item"><a href="/User">Quản lý người dùng</a></li>
-                                    <li class="dropdown-item"><a href="/Role">Quản lý chức vụ</a></li>
-                                    <li class="dropdown-item"><a href="/History">Lịch sử hệ thống</a></li>
-                                    <li class="dropdown-item"><a href="/History/Receipt">Lịch sử các phiếu</a></li>
-                                    <li class="dropdown-item"><hr class="horizontal dark my-1"></li>
-                                }
-                                <li class="dropdown-item"><a href="/Login/Logout">Đăng xuất</a></li>
-                            </ul>
+                        <div id="myDropdown" class="dropdown-contentx">
+                            @if (user.RoleID == 1)
+                            {
+                                <a class="text-sm" href="/User">Quản lý người dùng</a>
+                                <a class="text-sm" href="/Role">Quản lý chức vụ</a>
+                                <a class="text-sm" href="/History">Lịch sử hệ thống</a>
+                                <a class="text-sm" href="/History/Receipt">Lịch sử các phiếu</a>
+                                <hr class="horizontal dark my-1">
+                            }
+                            <a class="text-sm" href="/Login/Logout">Đăng xuất</a>
                         </div>
-                    }
+                    </div>                  
                 </li>
             </ul>
         </div>

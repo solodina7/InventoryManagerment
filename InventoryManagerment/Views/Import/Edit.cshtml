@@ -9,7 +9,7 @@
     string GetProductName(string code)
     {
         var product = db.Products.Where(x => x.Code == code).FirstOrDefault();
-        return db.ProductCategories.Find(product.CategoryID).Name+" | "+product.Name +" | "+db.Packages.Find(product.PackageID).Name;
+        return db.ProductCategories.Find(product.CategoryID).Name + " | " + product.Name + " | " + db.Packages.Find(product.PackageID).Name;
     }
     string GetUnitName(long id)
     {
@@ -67,13 +67,40 @@
         sb.Append(" </script>");
         return sb.ToString();
     }
-    string GetPackageName(long? id) 
+    string addListSupplier()
     {
-        if(id == 0 || id == null) 
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var dataSupplier = new Array();");
+        foreach (var item in db.Suppliers.ToList())
+        {
+            sb.Append($" dataSupplier.push('{item.Name}');");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string addSupplierModel()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.Append("<script>");
+        sb.Append(" var listSupplier = new Array();");
+        foreach (var item in db.Suppliers.ToList())
+        {
+            sb.Append(" var ModelSupplier = {};");
+            sb.Append($" ModelSupplier.Name ='{item.Name}';");
+            sb.Append($" ModelSupplier.Code ='{item.Code}';");
+            sb.Append($" listSupplier.push(ModelSupplier);");
+        }
+        sb.Append(" </script>");
+        return sb.ToString();
+    }
+    string GetPackageName(long? id)
+    {
+        if (id == 0 || id == null)
         {
             return "";
         }
-        else 
+        else
         {
             return db.Packages.Find(id).Name;
         }
@@ -91,13 +118,7 @@
     </div>
     <div class="input-group input-group-static my-3">
         <label>Nhà cung cấp</label>
-        <select id="txtSupplier" class="form-control">
-            <option value="chuachon">Chọn nhà cung cấp</option>
-            @foreach (var item in listSupplier)
-            {
-                <option value="@item.ID">@item.Name</option>
-            }
-        </select>
+        <input id="txtSupplier" class="form-control" />
     </div>
     <div class="input-group input-group-static my-3">
         <label>Ghi chú</label>
@@ -250,7 +271,10 @@
 </div>
 @section jsFooter{
     @Html.Raw(addListProduct());
-<script>
+    @Html.Raw(addProductModel());
+    @Html.Raw(addListSupplier());
+    @Html.Raw(addSupplierModel())
+    <script>
         $(document).ready(function () {
             $("#btnAddProduct").click(function () {
                 AddProductRecord();
@@ -265,6 +289,7 @@
             setTime();
             SetValue();
             AutoComplete(dataProduct, $('#txtProductName'));
+            AutoComplete(dataSupplier, $('#txtSupplier'));
             $('#txtQuantity').focusout(function () {
                 var text = $('#txtQuantity').val();
                 if (!$.isNumeric(text)) {
@@ -300,7 +325,28 @@
                     $('#txtPackage').val(packageid);
                 }
                 else if (jQuery.inArray(text, dataProduct) == -1) {
+                    hideAlert($('#txtSupplier'));
                     $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này bạn có muốn thêm mới không ? <a onclick="setName()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert()">X</a></label><div>');
+                }
+            });
+            $('#txtSupplier').focusout(function () {
+                if ($('#txtSupplier').val().trim().length > 0) {
+                    var nameSupplier = $('#txtSupplier').val().trim();
+                    var count = 0;
+                    listSupplier.forEach(item => {
+                        if (item.Name == nameSupplier) {
+                            count += 1;
+                            return false;
+                        }
+                    });
+                    if (count == 0) {
+                        hideAlert($('#txtSupplier'));
+                        $('div.container-fluid div.row:eq(0) div.input-group:eq(2)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập nhà cung cấp có sẵn</label><div>');
+                        $('#txtSupplier').val("");
+                    }
+                    else {
+                        hideAlert($('#txtSupplier'));
+                    }
                 }
             });
         });
@@ -370,8 +416,8 @@
                     delay: 0,
                 });
         }
-        function SetValue(){
-            $('#txtSupplier').val("@Model.Import.SupplierID");
+        function SetValue() {
+            $('#txtSupplier').val("@db.Suppliers.Find(Model.Import.SupplierID).Name");
             $('#txtNote').val("@Model.Import.Note.Trim()");
         }
         function setTime() {
@@ -463,7 +509,13 @@
                 var UnitID = $(this).find("td:eq(3)").attr('id');
                 var Time = $("#txtTime").val();
                 var PackageID = $(this).find("td:eq(4)").attr('id');
-                var SupplierID = $("#txtSupplier option:selected").val();
+                var SupplierName = $('#txtSupplier').val();
+                var SupplierCode = "";
+                listSupplier.forEach(item => {
+                    if (item.Name == SupplierName) {
+                        SupplierCode = item.Code;
+                    }
+                });
                 var Note = $("#txtNote").val();
 
                 var ProductModel = {};
@@ -472,7 +524,7 @@
                 ProductModel.Quantity = Quantity;
                 ProductModel.ProductCode = Code;
                 ProductModel.Time = Time;
-                ProductModel.SupplierID = SupplierID;
+                ProductModel.SupplierCode = SupplierCode;
                 ProductModel.Note = Note;
                 ProductModel.UnitID = UnitID;
                 ProductModel.PackageID = PackageID;
@@ -576,6 +628,5 @@
                 }
             });
         };
-</script>
-    @Html.Raw(addProductModel());
+    </script>
 }

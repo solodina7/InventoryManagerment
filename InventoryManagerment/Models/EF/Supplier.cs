@@ -14,5 +14,6 @@
         [StringLength(50)]
         [DisplayName("Tên nhà cung cấp")]
         public string Name { get; set; }
+        public string Code { get; set; }
     }
 }

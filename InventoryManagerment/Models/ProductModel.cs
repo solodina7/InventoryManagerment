@@ -7,7 +7,7 @@ namespace InventoryManagerment.Models
 {
     public class ProductModel
     {
-        public long SupplierID { get; set; }
+        public string SupplierCode { get; set; }
         public DateTime Time { get; set; }
         public string Code { get; set; }
         public string ProductCode { get; set; }

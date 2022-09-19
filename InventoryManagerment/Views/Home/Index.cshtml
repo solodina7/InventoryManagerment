@@ -167,7 +167,7 @@
     int soluongphieuxuatchuaduyethomqua()
     {
         var time = DateTime.Today.AddDays(-1).Date;
-        return db.Exports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day && x.Status==false).ToList().Count;
+        return db.Exports.Where(x => x.Time.Year == time.Year && x.Time.Month == time.Month && x.Time.Day == time.Day && x.Status == false).ToList().Count;
     }
     int soluongphieunhaphomnay()
     {
@@ -445,7 +445,7 @@
                     </div>
                     <div class="text-end pt-1">
                         <p class="text-sm mb-0 text-capitalize"></p>
-                        <h4 class="mb-0">Hôm Nay</h4>
+                        <h5 class="mb-0">Hôm Nay</h5>
                     </div>
                 </div>
                 <hr class="dark horizontal my-0">
@@ -475,7 +475,7 @@
                     </div>
                     <div class="text-end pt-1">
                         <p class="text-sm mb-0 text-capitalize"></p>
-                        <h4 class="mb-0">Hôm Qua</h4>
+                        <h5 class="mb-0">Hôm Qua</h5>
                     </div>
                 </div>
                 <hr class="dark horizontal my-0">
@@ -503,7 +503,7 @@
                         <i class="material-icons opacity-10">date_range</i>
                     </div>
                     <div class="text-end pt-1">
-                        <h4 class="mb-0">Doanh Thu Theo Tuần</h4>
+                        <h5 class="mb-0">Tuần Này</h5>
                     </div>
                 </div>
                 <hr class="dark horizontal my-0">
@@ -531,7 +531,7 @@
                         <i class="material-icons opacity-10">show_chart</i>
                     </div>
                     <div class="text-end pt-1">
-                        <h4 class="mb-0">Biến Động Số Dư</h4>
+                        <h5 class="mb-0">Biến Động</h5>
                     </div>
                 </div>
                 <hr class="dark horizontal my-0">
@@ -559,25 +559,25 @@
             </div>
         </div>
     </div>
-    <div style="margin-top:25px;margin-bottom:25px;"></div>
+    <div class="w-100"></div>
     <div class="row">
         <div class="col-xl-6 col-sm-6 mb-xl-0 mb-4">
             <div class="card">
                 <div class="card-header p-3 pt-2">
-                    <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
-                        <i class="material-icons opacity-10">bar_chart</i>
-                    </div>
-                    <div class="text-end pt-1">
+                    @*<div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
+                            <i class="material-icons opacity-10">bar_chart</i>
+                        </div>*@
+                    <div class="text-start pt-1">
                         <p class="text-sm mb-0 text-capitalize"></p>
-                        <h4 class="mb-0">Biểu đồ doanh thu năm @DateTime.Now.Year</h4>
+                        <h5 class="mb-0 text-normal"><i class="material-icons me-2 text-normal">bar_chart</i><b>Biểu đồ doanh thu năm @DateTime.Now.Year</b></h5>
                     </div>
                 </div>
                 <hr class="dark horizontal my-0">
-                    <div class="card-body p-3">
-                        <div class="chart">
-                            <canvas id="myChart" class="chart-canvas" style="height:300px"></canvas>
-                        </div>
+                <div class="card-body p-3">
+                    <div class="chart">
+                        <canvas id="myChart" class="chart-canvas" style="height:300px"></canvas>
                     </div>
+                </div>
             </div>
         </div>
     </div>
@@ -720,52 +720,52 @@ else
     @Html.Raw(addListProduct())
     @Html.Raw(addModelBussiness())
     <script>
-        $(document).ready(function () {
-            AutoComplete(dataProduct, $("#searchString"));
-        });
-        function addClasslist() {
-            $('#listPagination ul li').each(function () {
-                $(this).addClass('page-item');
-                $(this).find('a').addClass('page-link')
-            });
-        }
-        function AutoComplete(dataProduct, element) {
-            element.autocomplete({
-                source: dataProduct,
-                minLength: 0,
-            },
-                {
-                    autoFocus: true,
-                    delay: 0,
+                $(document).ready(function () {
+                    AutoComplete(dataProduct, $("#searchString"));
                 });
-        }
-        addClasslist();
-        var xValues = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
-        new Chart("myChart", {
-            type: "line",
-            data: {
-                labels: xValues,
-                datasets: [{
-                    data: chitieutheothang,
-                    borderColor: "red",
-                    label: "Tổng tiền nhập hàng:",
-                    fill: false
-                }, {
-                    data: loinhuantheothang,
-                    label: "Lợi nhuận",
-                    borderColor: "green",
-                    fill: true
-                }, {
-                    data: doanhthutheothang,
-                    label: "Doanh thu",
-                    borderColor: "blue",
-                    fill: false
-                }]
-            },
-            options: {
-                legend: { display: true }
+            function addClasslist() {
+                $('#listPagination ul li').each(function () {
+                    $(this).addClass('page-item');
+                    $(this).find('a').addClass('page-link')
+                });
             }
-        });
+            function AutoComplete(dataProduct, element) {
+                element.autocomplete({
+                    source: dataProduct,
+                    minLength: 0,
+                },
+                    {
+                        autoFocus: true,
+                        delay: 0,
+                    });
+            }
+            addClasslist();
+            var xValues = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+            new Chart("myChart", {
+                type: "line",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        data: chitieutheothang,
+                        borderColor: "red",
+                        label: "Tổng tiền nhập hàng:",
+                        fill: false
+                    }, {
+                        data: loinhuantheothang,
+                        label: "Lợi nhuận",
+                        borderColor: "green",
+                        fill: true
+                    }, {
+                        data: doanhthutheothang,
+                        label: "Doanh thu",
+                        borderColor: "blue",
+                        fill: false
+                    }]
+                },
+                options: {
+                    legend: { display: true }
+                }
+            });
     </script>
 }
 

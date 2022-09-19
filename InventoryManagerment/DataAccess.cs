@@ -166,24 +166,65 @@ namespace InventoryManagerment
         }
         //---------------------------------------------------------------------------------------------------------------------------------
         //Chức năng sản phẩm
-        public IEnumerable<Product> ListAllProductOnPagedlist(string searchString, long typeProduct, int page, int pageSize)
+        public IEnumerable<Product> ListAllProductOnPagedlist(string searchString,long quantity, long typeProduct, int page, int pageSize)
         {
             IQueryable<Product> model = db.Products;
-            if (!string.IsNullOrEmpty(searchString) && typeProduct == 0)
+            if(quantity == 0)
             {
-                model = model.Where(x => x.Name.Contains(searchString));
+                if (!string.IsNullOrEmpty(searchString) && typeProduct == 0)
+                {
+                    model = model.Where(x => x.Name.Contains(searchString));
+                }
+                else if (!string.IsNullOrEmpty(searchString) && typeProduct != 0)
+                {
+                    model = model.Where(x => x.Name.Contains(searchString) && x.CategoryID.Value == typeProduct);
+                }
+                else if (string.IsNullOrEmpty(searchString) && typeProduct != 0)
+                {
+                    model = model.Where(x => x.CategoryID.Value == typeProduct);
+                }
+                else
+                {
+                    model = model.Where(x => x.ID != 0);
+                }
             }
-            else if (!string.IsNullOrEmpty(searchString) && typeProduct != 0)
+            else if(quantity == 1)
             {
-                model = model.Where(x => x.Name.Contains(searchString) && x.CategoryID.Value == typeProduct);
-            }
-            else if (string.IsNullOrEmpty(searchString) && typeProduct != 0)
-            {
-                model = model.Where(x => x.CategoryID.Value == typeProduct);
+                if (!string.IsNullOrEmpty(searchString) && typeProduct == 0)
+                {
+                    model = model.Where(x => x.Name.Contains(searchString) && x.Quantity < x.QuantityAlert && x.Quantity>0);
+                }
+                else if (!string.IsNullOrEmpty(searchString) && typeProduct != 0)
+                {
+                    model = model.Where(x => x.Name.Contains(searchString) && x.CategoryID.Value == typeProduct && x.Quantity < x.QuantityAlert && x.Quantity > 0);
+                }
+                else if (string.IsNullOrEmpty(searchString) && typeProduct != 0)
+                {
+                    model = model.Where(x => x.CategoryID.Value == typeProduct && x.Quantity < x.QuantityAlert && x.Quantity > 0);
+                }
+                else
+                {
+                    model = model.Where(x => x.ID != 0 && x.Quantity < x.QuantityAlert && x.Quantity > 0);
+                }
             }
             else
             {
-                model = model.Where(x => x.ID != 0);
+                if (!string.IsNullOrEmpty(searchString) && typeProduct == 0)
+                {
+                    model = model.Where(x => x.Name.Contains(searchString) && x.Quantity==0);
+                }
+                else if (!string.IsNullOrEmpty(searchString) && typeProduct != 0)
+                {
+                    model = model.Where(x => x.Name.Contains(searchString) && x.CategoryID.Value == typeProduct && x.Quantity==0);
+                }
+                else if (string.IsNullOrEmpty(searchString) && typeProduct != 0)
+                {
+                    model = model.Where(x => x.CategoryID.Value == typeProduct && x.Quantity==0);
+                }
+                else
+                {
+                    model = model.Where(x => x.ID != 0 && x.Quantity==0);
+                }
             }
             return model.OrderBy(x => x.ID).ToPagedList(page, pageSize);
         }
@@ -512,9 +553,16 @@ namespace InventoryManagerment
             }
 
         }
-        public Supplier GetSupplier(long id)
+        public Supplier GetSupplier(long? id, string code)
         {
-            return db.Suppliers.Find(id);
+            if (id.HasValue)
+            {
+                return db.Suppliers.Find(id);
+            }
+            else
+            {
+                return db.Suppliers.Where(x => x.Code == code).FirstOrDefault();
+            }
         }
         public bool UpdateSupplier(Supplier model, string userName)
         {
@@ -918,7 +966,8 @@ namespace InventoryManagerment
                 {
                     Import phieuxuat = new Import();
                     phieuxuat.Code = newcode;
-                    phieuxuat.SupplierID = listProduct.First().SupplierID;
+                    var supplierVar = GetSupplier(null, listProduct.FirstOrDefault().SupplierCode);
+                    phieuxuat.SupplierID = supplierVar.ID;
                     phieuxuat.Time = listProduct.First().Time;
                     if (string.IsNullOrEmpty(listProduct.First().Note))
                     {
@@ -977,8 +1026,9 @@ namespace InventoryManagerment
                     return true;
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                
                 return false;
             }
         }
@@ -1007,10 +1057,11 @@ namespace InventoryManagerment
                     }
 
                 }
-                if (importReceipt.SupplierID != obj.SupplierID)
+                var supplierVar = db.Suppliers.Where(x => x.Code == obj.SupplierCode).FirstOrDefault();
+                if (importReceipt.SupplierID != supplierVar.ID)
                 {
-                    changeText += $"Thay đổi NCC từ '{db.Suppliers.Find(importReceipt.SupplierID).Name}' thành '{db.Suppliers.Find(obj.SupplierID).Name}' |";
-                    importReceipt.SupplierID = obj.SupplierID;
+                    changeText += $"Thay đổi NCC từ '{db.Suppliers.Find(importReceipt.SupplierID).Name}' thành '{db.Suppliers.Find(supplierVar.ID).Name}' |";
+                    importReceipt.SupplierID = supplierVar.ID;
                 }
                 if (importReceipt.Time != obj.Time)
                 {
@@ -1111,6 +1162,33 @@ namespace InventoryManagerment
             {
                 return false;
             }
+        }
+        public List<ImportModel> GetDataImport(string code)
+        {
+            var import = db.Imports.Where(x => x.Code == code).FirstOrDefault();
+            var imports = db.ImportDetails.Where(x => x.ImportCode == code).ToList();
+            decimal tongtien = 0;
+            List<ImportModel> listImport = new List<ImportModel>();
+            foreach(var item in imports)
+            {
+                tongtien += item.Quantity * item.ImportPrice;
+            }
+            foreach(var item in imports)
+            {
+                var model = new ImportModel();
+                model.Code = import.Code;
+                model.Note = import.Note;
+                model.PackageName = db.Packages.Find(item.PackageID).Name;
+                model.Price = item.ImportPrice;
+                model.Quantity = item.Quantity;
+                model.ProductName = db.Products.Where(x => x.Code == item.ProductCode).FirstOrDefault().Name;
+                model.SupplierName = db.Suppliers.Find(import.SupplierID).Name;
+                model.Time = import.Time.ToString("dd-MM-yyyy HH:mm");
+                model.Total = tongtien;
+                model.UnitName = db.Units.Find(item.UnitID).Name;
+                listImport.Add(model);
+            }
+            return listImport;
         }
         //---------------------------------------------------------------------------------------------------------------------------------
         //Chức năng phiếu xuất
@@ -1668,6 +1746,34 @@ namespace InventoryManagerment
                     break;
             }
         }
+        public List<ExportModel> GetDataExport(string code)
+        {
+            var export = db.Exports.Where(x => x.Code == code).FirstOrDefault();
+            var exports = db.ExportDetails.Where(x => x.ExportCode == code).ToList();
+            decimal tongtien = 0;
+            List<ExportModel> listExport = new List<ExportModel>();
+            foreach (var item in exports)
+            {
+                tongtien += (item.Quantity * item.Price);
+            }
+            foreach (var item in exports)
+            {
+                var model = new ExportModel();
+                model.CustomerName = db.Customers.Where(x => x.CustomerCode == export.CustomerCode).FirstOrDefault().Name;
+                model.Delivery = export.Delivery;
+                model.ExportCode = code;
+                model.Note = export.Note;
+                model.Price = item.Price;
+                model.ProductName = db.Products.Where(x => x.Code == item.ProductCode).FirstOrDefault().Name;
+                model.Quantity = item.Quantity;
+                model.Staff = db.Users.Find(export.UserID).Name;
+                model.Time = export.Time.ToString("dd-MM-yyyy HH:mm");
+                model.UnitName = db.Units.Find(item.UnitID).Name;
+                model.Total = tongtien;
+                listExport.Add(model);
+            }
+            return listExport;
+        }
         //---------------------------------------------------------------------------------------------------------------------------------
         //Chức năng phiếu trả hàng
         public IEnumerable<RefundViewModel> ListAllRefundOnPagedlist(string searchString,string note,string nameProduct,string nameStaff,bool? status, DateTime? dateRefund, int page, int pageSize)
@@ -2135,6 +2241,33 @@ namespace InventoryManagerment
             {
                 return false;
             }
+        }
+        public List<RefundModel> GetDataRefund(string code)
+        {
+            var refund = db.Refunds.Where(x => x.Code == code).FirstOrDefault();
+            var reunfds = db.RefundDetails.Where(x => x.RefundCode == code).ToList();
+            decimal tongtien = 0;
+            List<RefundModel> listRefund = new List<RefundModel>();
+            foreach (var item in reunfds)
+            {
+                tongtien += (item.Quantity * item.Price);
+            }
+            foreach (var item in reunfds)
+            {
+                var model = new RefundModel();
+                model.CustomerName = db.Customers.Where(x => x.CustomerCode == refund.CustomerCode).FirstOrDefault().Name;
+                model.RefundCode = code;
+                model.Note = refund.Note;
+                model.Price = item.Price;
+                model.ProductName = db.Products.Where(x => x.Code == item.ProductCode).FirstOrDefault().Name;
+                model.Quantity = item.Quantity;
+                model.Staff = db.Users.Find(refund.UserID).Name;
+                model.Time = refund.Time.ToString("dd-MM-yyyy HH:mm");
+                model.UnitName = db.Units.Find(item.UnitID).Name;
+                model.Total = tongtien;
+                listRefund.Add(model);
+            }
+            return listRefund;
         }
         //---------------------------------------------------------------------------------------------------------------------------------
         //Lưu lịch sử
