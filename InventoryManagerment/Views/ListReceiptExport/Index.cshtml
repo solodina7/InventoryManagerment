@@ -5,27 +5,24 @@
 
 @{
     //Export Index
+    var db = new InventoryDbContext();
     Layout = "~/Views/Shared/_Layout.cshtml";
     long GetProductQuantity(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.ExportDetails.Where(x => x.ExportCode == Code).ToList();
         return list.Count;
     }
     List<ExportDetail> GetListProduct(string Code)
     {
-        var db = new InventoryDbContext();
         return db.ExportDetails.Where(x => x.ExportCode == Code && x.ExportDetailDelete == false).ToList();
     }
     string GetNameProduct(string Code)
     {
-        var db = new InventoryDbContext();
         Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
         return product.Name;
     }
     string GetNameUnit(long id)
     {
-        var db = new InventoryDbContext();
         return db.Units.Find(id).Name;
     }
     string GetDelivery(string text)
@@ -41,7 +38,6 @@
     }
     string GetProductPrice(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.ExportDetails.Where(x => x.ExportCode == Code).ToList();
         if (list == null)
         {
@@ -82,6 +78,10 @@
             return note;
         }
 
+    }
+    long GetID(string code)
+    {
+        return db.Exports.Where(x => x.Code == code).FirstOrDefault().ID;
     }
 }
 <div class="row">
@@ -160,7 +160,7 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                            <tr id="row_@item.ID">
+                            <tr id="row_@GetID(item.Code)">
                                 <td>
                                     <div class="d-flex px-2 py-1">
                                         <div class="d-flex flex-column justify-content-center">
@@ -246,8 +246,8 @@
                                 @if (item.Status == false)
                                 {
                                     <td class="align-middle text-center">
-                                        <a href="/ListReceipt/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
-                                        <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
+                                        <a href="/ListReceiptExport/Edit/@GetID(item.Code)"><i class="material-icons">edit_note</i></a>
+                                        <a class="delete" href="#" id="@GetID(item.Code)"><i class="material-icons">delete</i></a>
                                     </td>
                                 }
                                 else 

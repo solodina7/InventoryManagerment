@@ -25,15 +25,6 @@
         sb.Append(" </script>");
         return sb.ToString();
     }
-    string DoanhThu(List<ExportDetail> exportDetails)
-    {
-        decimal sum = 0;
-        foreach (var item in exportDetails)
-        {
-            sum += (item.Price * item.Quantity);
-        }
-        return InventoryManagerment.Common.Functions.NumberToMoney(sum.ToString());
-    }
     decimal sosanhdoanhthutheongay()
     {
 
@@ -90,64 +81,6 @@
             }
         }
         return tongdoanhthuhomnay - tongdoanhthuhomqua;
-    }
-    decimal sosanhdoanhthutheothang()
-    {
-        var thangnay = DateTime.Now.Date;
-        var thangtruoc = DateTime.Today.AddMonths(-1).Date;
-        decimal doanhthuthangnay = 0;
-        decimal doanhthuthangtruoc = 0;
-        var danhsachthangnay = db.Exports.Where(x => x.Time.Year == thangnay.Year && x.Time.Month == thangnay.Month).ToList();
-        var danhsachthangtruoc = db.Exports.Where(x => x.Time.Year == thangtruoc.Year && x.Time.Month == thangtruoc.Month).ToList();
-        if (danhsachthangnay == null)
-        {
-            foreach (var item in danhsachthangtruoc)
-            {
-                var chitiet = new List<ExportDetail>();
-                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
-                foreach (var chitietxuat in chitiet)
-                {
-                    doanhthuthangtruoc += (chitietxuat.Price * chitietxuat.Quantity);
-                }
-            }
-            return doanhthuthangtruoc;
-        }
-        else if (danhsachthangtruoc == null)
-        {
-            foreach (var item in danhsachthangnay)
-            {
-                var chitiet = new List<ExportDetail>();
-                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
-                foreach (var chitietxuat in chitiet)
-                {
-                    doanhthuthangnay += (chitietxuat.Price * chitietxuat.Quantity);
-                }
-            }
-            return doanhthuthangnay;
-        }
-        else
-        {
-            foreach (var item in danhsachthangnay)
-            {
-                var chitiet = new List<ExportDetail>();
-                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
-                foreach (var chitietxuat in chitiet)
-                {
-                    doanhthuthangnay += (chitietxuat.Price * chitietxuat.Quantity);
-                }
-            }
-            foreach (var item in danhsachthangtruoc)
-            {
-                var chitiet = new List<ExportDetail>();
-                chitiet = db.ExportDetails.Where(x => x.ExportCode == item.Code).ToList();
-                foreach (var chitietxuat in chitiet)
-                {
-                    doanhthuthangtruoc += (chitietxuat.Price * chitietxuat.Quantity);
-                }
-            }
-            return doanhthuthangnay - doanhthuthangtruoc;
-        }
-
     }
     int soluongphieuxuathomnay()
     {

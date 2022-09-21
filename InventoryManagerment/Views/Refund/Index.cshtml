@@ -6,9 +6,9 @@
 @{
     //Refund Index
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new InventoryDbContext();
     string GetProductPrice(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.RefundDetails.Where(x => x.RefundCode == Code).ToList();
         if (list == null)
         {
@@ -52,9 +52,12 @@
     }
     long GetProductQuantity(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.RefundDetails.Where(x => x.RefundCode == Code).ToList();
         return list.Count;
+    }
+    long GetID(string code)
+    {
+        return db.Refunds.Where(x => x.Code == code).FirstOrDefault().ID;
     }
 }
 <div class="modal fade" id="refundDetail" tabindex="-1" role="dialog" aria-labelledby="reunfdModalLabel" aria-hidden="true">
@@ -180,7 +183,7 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                            <tr id="row_@item.ID">
+                            <tr id="row_@GetID(item.Code)">
                                 <td>
                                     <div class="d-flex px-2 py-1">
                                         <div class="d-flex flex-column justify-content-center">
@@ -217,8 +220,8 @@
                                     }
                                 </td>
                                 <td class="align-middle text-center">
-                                    <a href="/Refund/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
-                                    <a class="delete" href="javascript:;" id="@item.ID"><i class="material-icons">delete</i></a>
+                                    <a href="/Refund/Edit/@GetID(item.Code)"><i class="material-icons">edit_note</i></a>
+                                    <a class="delete" href="javascript:;" id="@GetID(item.Code)"><i class="material-icons">delete</i></a>
                                 </td>
                             </tr>
                                 i++;
@@ -238,7 +241,7 @@
 @section jsFooter{
     <script>
         $(document).ready(function () {
-            $('#tbl_Export tbody  tr td .delete').click(function () {
+            $('a.delete').click(function () {
                 var id = $(this).attr('id');
                 $.confirm({
                     title: 'Thông báo',
@@ -250,24 +253,15 @@
                             key:['enter'],
                             action: function () {
                                 var row = '#row_' + id;
-                                $.ajax({
-                                    type: "POST",
-                                    url: "/Refund/Delete/",
-                                    data: JSON.stringify({ id: id }),
-                                    contentType: "application/json; charset=utf8",
-                                    success: function () {
-                                        $(row).remove();
-                                        var obj = $.alert({
-                                            title: 'Thông báo',
-                                            content: 'Xóa phiếu trả thành công',
-                                        });
-                                        setTimeout(function () {
-                                            obj.close();
-                                        }, 1500);
-                                    },
-                                    error: function () {
-                                        $.alert('Xóa thất bại');
-                                    }
+                                $.post("/Refund/Delete/", { id: id }, function () {
+                                    $(row).remove();
+                                    var obj = $.alert({
+                                        title: 'Thông báo',
+                                        content: 'Xóa phiếu trả thành công',
+                                    });
+                                    setTimeout(function () {
+                                        obj.close();
+                                    }, 1500);
                                 });
                             }
                         },
@@ -346,7 +340,6 @@
                 type: 'GET',
                 data: { code: code },
                 success: function (result) {
-                    console.log(result);
                     result.forEach(item => {
                         var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.ProductName + '</span></td>"'
                             + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.Quantity + '' + item.UnitName + '</span></td>'

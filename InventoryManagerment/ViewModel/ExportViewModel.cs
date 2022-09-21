@@ -7,7 +7,6 @@ namespace InventoryManagerment.ViewModel
 {
     public class ExportViewModel
     {
-        public long ID { get; set; }
         public string Code { get; set; }
         public string CustomerName { get; set; }
         public DateTime Time { get; set; }
@@ -17,6 +16,5 @@ namespace InventoryManagerment.ViewModel
         public string Note { get; set; }
         public bool ExportDelete { get; set; }
         public string ProductCode { get; set; }
-        public decimal TotalPrice { get; set; }
     }
 }

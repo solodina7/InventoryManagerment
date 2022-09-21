@@ -1,32 +1,15 @@
 ﻿@using PagedList.Mvc;
 @using PagedList;
 @using InventoryManagerment.Models.EF;
-@using System.Text;
 @model IPagedList<InventoryManagerment.ViewModel.ExportViewModel>
 @{
     //Export Index
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new InventoryDbContext();
     long GetProductQuantity(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.ExportDetails.Where(x => x.ExportCode == Code).ToList();
         return list.Count;
-    }
-    List<ExportDetail> GetListProduct(string Code)
-    {
-        var db = new InventoryDbContext();
-        return db.ExportDetails.Where(x => x.ExportCode == Code && x.ExportDetailDelete == false).ToList();
-    }
-    string GetNameProduct(string Code)
-    {
-        var db = new InventoryDbContext();
-        Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
-        return product.Name;
-    }
-    string GetNameUnit(long id)
-    {
-        var db = new InventoryDbContext();
-        return db.Units.Find(id).Name;
     }
     string GetDelivery(string text)
     {
@@ -41,7 +24,6 @@
     }
     string GetProductPrice(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.ExportDetails.Where(x => x.ExportCode == Code).ToList();
         if (list == null)
         {
@@ -83,7 +65,10 @@
         }
 
     }
-    int? statusExport = ViewBag.status;
+    long GetID(string code)
+    {
+        return db.Exports.Where(x => x.Code == code).FirstOrDefault().ID;
+    }
 }
 <!-- Modal -->
 <div class="modal fade" id="importDetail" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
@@ -119,6 +104,64 @@
         </div>
     </div>
 </div>
+<!-- Modal Search -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm phiếu xuất</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Index", "Export", method: FormMethod.Get))
+                {
+                    <div class="input-group mb-3">
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tên khách hàng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <textarea placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" name="note">@ViewBag.note</textarea>
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.nameProduct" name="nameProduct">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tên người lập" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.userName" name="userName">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input placeholder="Nhập tên người giao" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.staffName" name="staffName">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateExport" id="dateExport" name="dateExport">
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <select id="status" name="status" class="form-control">
+                                <option value="2">Tất cả</option>
+                                <option value="1">Đã duyệt</option>
+                                <option value="0">Chưa duyệt</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-static mb-4">
+                            <select id="pageSize" name="pageSize" class="form-control">
+                                <option value="10">Số dòng hiển thị</option>
+                                @for (int a = 15; a <= 100; a += 5)
+                                {
+                                    <option value="@a">@a</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
+                        <span class="btn-inner--icon"><i class="material-icons">search</i></span>
+                        <span class="btn-inner--text">Tìm kiếm</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card my-4">
@@ -135,64 +178,6 @@
             </div>
             <div class="card-body px-0 pb-2">
                 <div class="px-2 mb-1">
-                    <!-- Modal -->
-                    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title font-weight-normal" id="searchtitleModal">Tìm kiếm phiếu xuất</h5>
-                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    @using (Html.BeginForm("Index", "Export", method: FormMethod.Get))
-                                    {
-                                        <div class="input-group mb-3">
-                                            <div class="input-group input-group-static mb-4">
-                                                <input placeholder="Nhập tên khách hàng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <textarea placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" name="note">@ViewBag.note</textarea>
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.nameProduct" name="nameProduct">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <input placeholder="Nhập tên người lập" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.userName" name="userName">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <input placeholder="Nhập tên người giao" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.staffName" name="staffName">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateExport" id="dateExport" name="dateExport">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <select id="status" name="status" class="form-control">
-                                                    <option value="2">Tất cả</option>
-                                                    <option value="1">Đã duyệt</option>
-                                                    <option value="0">Chưa duyệt</option>
-                                                </select>
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <select id="pageSize" name="pageSize" class="form-control">
-                                                    <option value="10">Số dòng hiển thị</option>
-                                                    @for (int a = 15; a <= 100; a += 5)
-                                                    {
-                                                        <option value="@a">@a</option>
-                                                    }
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
-                                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
-                                            <span class="btn-inner--text">Tìm kiếm</span>
-                                        </button>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="table-responsive p-0">
                     <table id="tbl_Export" class="table align-items-center mb-0">
@@ -202,7 +187,7 @@
                                 <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Ngày xuất</th>
                                 <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên khách hàng</th>
                                 <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên người lập</th>
-                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số sản phẩm nhập</th>
+                                <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Sản phẩm</th>
                                 <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tổng tiền</th>
                                 <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Người giao</th>
                                 <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Ghi chú</th>
@@ -214,7 +199,7 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                                <tr id="row_@item.ID">
+                                <tr id="row_@GetID(item.Code)">
                                     <td>
                                         <div class="d-flex px-2 py-1">
                                             <div class="d-flex flex-column justify-content-center">
@@ -229,7 +214,7 @@
                                         <h6 class="mb-0 text-sm">@item.CustomerName</h6>
                                     </td>
                                     <td class="align-middle text-center">
-                                        <h6 class="mb-0 text-sm">@item.NameUser</h6>
+                                        <h6 class="mb-0 text -sm">@item.NameUser</h6>
                                     </td>
                                     <td class="align-middle text-center">
                                         <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a id="@item.Code" onclick="showDetail(this)" class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#importDetail"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
@@ -254,8 +239,8 @@
                                         }
                                     </td>
                                     <td class="align-middle text-center">
-                                        <a href="/Export/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
-                                        <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
+                                        <a href="/Export/Edit/@GetID(item.Code)"><i class="material-icons">edit_note</i></a>
+                                        <a class="delete" href="#" id="@GetID(item.Code)"><i class="material-icons">delete</i></a>
                                     </td>
                                 </tr>
                                 i++;
@@ -287,24 +272,15 @@
                             key: ['enter'],
                             action: function () {
                                 var row = '#row_' + id;
-                                $.ajax({
-                                    type: "POST",
-                                    url: "/Export/Delete/",
-                                    data: JSON.stringify({ id: id }),
-                                    contentType: "application/json; charset=utf8",
-                                    success: function () {
-                                        $(row).remove();
-                                        var obj = $.alert({
-                                            title: 'Thông báo',
-                                            content: 'Xóa phiếu xuất thành công',
-                                        });
-                                        setTimeout(function () {
-                                            obj.close();
-                                        }, 1500);
-                                    },
-                                    error: function () {
-                                        $.alert('Xóa thất bại');
-                                    }
+                                $.post("/Export/Delete/", { id: id }, function () {
+                                    $(row).remove();
+                                    var obj = $.alert({
+                                        title: 'Thông báo',
+                                        content: 'Xóa phiếu xuất thành công',
+                                    });
+                                    setTimeout(function () {
+                                        obj.close();
+                                    }, 1500);
                                 });
                             }
                         },
@@ -317,13 +293,13 @@
                 });
             });
             addClasslist();
-            setTimeout(function () {
-                setValue();
-            }, 1000);
+            setValue();
         });
         function setValue() {
-            $('#status option[value=@ViewBag.status]').attr('selected', 'selected');
-            $('#pageSize option[value=@ViewBag.pageSize]').attr('selected', 'selected');
+            var status = '@ViewBag.status';
+            var pageSize = '@ViewBag.pageSize'
+            $('#status option[value=' + status+']').attr('selected', 'selected');
+            $('#pageSize option[value=' + pageSize+']').attr('selected', 'selected');
         }
         function addClasslist() {
             $('#listPagination ul li').each(function () {
@@ -385,7 +361,6 @@
                 type: 'GET',
                 data: { code: code },
                 success: function (result) {
-                    console.log(result);
                     result.forEach(item => {
                         var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.ProductName + '</span></td>"'
                             + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.Quantity + '' + item.UnitName + '</span></td>'

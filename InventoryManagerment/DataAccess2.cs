@@ -27,7 +27,7 @@ namespace InventoryManagerment
             }
             else
             {
-                date = " ";
+                date = "";
             }
             if (!string.IsNullOrEmpty(note))
             {
@@ -35,7 +35,7 @@ namespace InventoryManagerment
             }
             else
             {
-                note = " ";
+                note = "";
             }
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -43,7 +43,7 @@ namespace InventoryManagerment
             }
             else
             {
-                searchString = " ";
+                searchString = "";
             }
             if (!string.IsNullOrEmpty(status))
             {
@@ -61,12 +61,12 @@ namespace InventoryManagerment
                 }
                 if(status == "Tất cả")
                 {
-                    status = " ";
+                    status = "";
                 }
             }
             else
             {
-                status = " ";
+                status = "";
             }
             var result = from ghichu in db.NOTEs
                          where ghichu.CUSTOMER.Contains(searchString) && ghichu.NOTE.Contains(note) && ghichu.TIME.Contains(date) && ghichu.STATUS.Contains(status)
@@ -100,7 +100,7 @@ namespace InventoryManagerment
             }
             else
             {
-                nameProduct = " "; 
+                nameProduct = ""; 
             }
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -108,24 +108,22 @@ namespace InventoryManagerment
             }
             else
             {
-                searchString = " ";
+                searchString = "";
             }
-            var ketqua = from bill in db.HOADONBANs
-                         join detail in db.CHITIETHOADONs on bill.MAHOADON equals detail.MAHOADON
-                         where bill.TENKHACHHANG.Contains(searchString) && detail.TENSANPHAM.Contains(nameProduct) && bill.NGAYBAN.Contains(date) && bill.TONGTIEN <= price
-                         orderby string.Concat(bill.NGAYBAN.Substring(21, 4), bill.NGAYBAN.Substring(14, 2), bill.NGAYBAN.Substring(5, 2), bill.NGAYBAN.Substring(28, 2), bill.NGAYBAN.Substring(35, 2), bill.NGAYBAN.Substring(43, 2)) descending
-                         group new { bill, detail } by new { bill.MAHOADON } into grp
-                         select new BillViewModel()
-                         {
-                             MAHOADON = grp.Key.MAHOADON,
-                             TENSANPHAM = grp.FirstOrDefault().detail.TENSANPHAM,
-                             STT = grp.FirstOrDefault().bill.STT,
-                             DEPT = grp.FirstOrDefault().bill.DEPT,
-                             NGAYBAN = grp.FirstOrDefault().bill.NGAYBAN,
-                             TENKHACHHANG = grp.FirstOrDefault().bill.TENKHACHHANG,
-                             TONGTIEN = grp.FirstOrDefault().bill.TONGTIEN
-                         };
-            return ketqua.OrderByDescending(x=>x.STT).ToPagedList(page, pageSize);          
+            var ketqua = (from bill in db.HOADONBANs
+                          join detail in db.CHITIETHOADONs on bill.MAHOADON equals detail.MAHOADON
+                          where bill.TENKHACHHANG.Contains(searchString) && detail.TENSANPHAM.Contains(nameProduct) && bill.NGAYBAN.Contains(date) && bill.TONGTIEN <= price
+                          select new BillViewModel()
+                          {
+                              MAHOADON = bill.MAHOADON,
+                              TENSANPHAM = detail.TENSANPHAM,
+                              STT = bill.STT,
+                              DEPT = bill.DEPT,
+                              NGAYBAN = bill.NGAYBAN,
+                              TENKHACHHANG = bill.TENKHACHHANG,
+                              TONGTIEN = bill.TONGTIEN
+                          }).Distinct().ToList();
+            return ketqua.OrderByDescending(x=>string.Concat(x.NGAYBAN.Substring(21, 4), x.NGAYBAN.Substring(14, 2), x.NGAYBAN.Substring(5, 2), x.NGAYBAN.Substring(28, 2), x.NGAYBAN.Substring(35, 2), x.NGAYBAN.Substring(43, 2))).ToPagedList(page, pageSize);          
         }
         public List<BillModel> GetListBill(string code)
         {

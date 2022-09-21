@@ -21,6 +21,7 @@ namespace InventoryManagerment.Controllers
             ViewBag.userName = userName;
             ViewBag.staffName = staffName;
             ViewBag.note = note;
+            ViewBag.status = status;
             bool? stt = null;
             if (status == 1)
             {
@@ -34,13 +35,12 @@ namespace InventoryManagerment.Controllers
             {
                 stt = null;
             }
-            ViewBag.status = status;
             if (dateExport.HasValue)
             {
                 ViewBag.dateExport = dateExport.Value.ToString("yyyy-MM-dd");
             }
             ViewBag.pageSize = pageSize;
-            var model = new DataAccess().ListAllExportOnPagedlist(searchString,nameProduct,userName,staffName,note, dateExport,stt, page, pageSize);
+            var model = new DataAccess().ListAllExportOnPagedlist(searchString,note,nameProduct, staffName, userName, dateExport,stt, page, pageSize);
             if (user.RoleID == 1)
             {
                 return View(model);
@@ -93,23 +93,20 @@ namespace InventoryManagerment.Controllers
             }
         }
         [HttpPost]
-        public JsonResult Edit(List<ListExport> model)
+        public void Edit(List<ListExport> model)
         {
             TempData[Common.CommonConstants.PAGE_NAME] = "Chỉnh sửa phiếu xuất";
             ViewBag.Title = "Tuấn Hoan - Chỉnh Sửa Phiếu Xuất";
             new DataAccess().UpdateExport(model,GetUserName());
-            return Json("", JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        public ActionResult Delete(long id)
+        public void Delete(long id)
         {
             User user = (User)Session[Common.CommonConstants.USER_SESSION];
             if (user.RoleID == 1)
             {
                 new DataAccess().DeleteExport(id,GetUserName());
             }
-            
-            return RedirectToAction("Index");
         }
         [HttpPost]
         public void ChangeStatus(string code)

@@ -23,22 +23,6 @@
         var list = db.ImportDetails.Where(x => x.ImportCode == Code).ToList();
         return list.Count;
     }
-    string GetNameProduct(string Code)
-    {
-        var db = new InventoryDbContext();
-        Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
-        return product.Name;
-    }
-    string GetNameUnit(long id)
-    {
-        var db = new InventoryDbContext();
-        return db.Units.Find(id).Name;
-    }
-    List<ImportDetail> GetListProduct(string Code)
-    {
-        var db = new InventoryDbContext();
-        return db.ImportDetails.Where(x => x.ImportCode == Code && x.ImportDetailDelete == false).ToList();
-    }
     string GetNote(string note)
     {
         if (note == null)
@@ -271,7 +255,6 @@
                 type: 'GET',
                 data: { code: code },
                 success: function (result) {
-                    console.log(result);
                     result.forEach(item => {
                         var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.ProductName + '</span></td>"'
                             + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.Quantity + '' + item.UnitName + '</span></td>'

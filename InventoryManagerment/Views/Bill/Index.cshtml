@@ -161,7 +161,6 @@
                 type: 'GET',
                 data: { code: code },
                 success: function (result) {
-                    console.log(result);
                     result.forEach(item => {
                         var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.TENSANPHAM + '</span></td>"'
                             + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.SOLUONG + '' + item.DONVITINH + '</span></td>'

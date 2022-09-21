@@ -6,31 +6,27 @@
 @{
     //Export Refund
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new InventoryDbContext();
     long GetProductQuantity(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.RefundDetails.Where(x => x.RefundCode == Code).ToList();
         return list.Count;
     }
     List<RefundDetail> GetListProduct(string Code)
     {
-        var db = new InventoryDbContext();
         return db.RefundDetails.Where(x => x.RefundCode == Code && x.RefundDetailDelete == false).ToList();
     }
     string GetNameProduct(string Code)
     {
-        var db = new InventoryDbContext();
         Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
         return product.Name;
     }
     string GetNameUnit(long id)
     {
-        var db = new InventoryDbContext();
         return db.Units.Find(id).Name;
     }
     string GetProductPrice(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.RefundDetails.Where(x => x.RefundCode == Code).ToList();
         if (list == null)
         {
@@ -72,6 +68,10 @@
         }
 
     }
+    long GetID(string code)
+    {
+        return db.Refunds.Where(x => x.Code == code).FirstOrDefault().ID;
+    }
 }
 <div class="row">
     <div class="col-12">
@@ -79,7 +79,7 @@
             <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                 <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
                     <div class="col-6">
-                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách phiếu xuất</h6>
+                        <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách phiếu trả</h6>
                     </div>
                     <div class="col-6 text-end">
                         <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
@@ -148,7 +148,7 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                                <tr id="row_@item.ID">
+                                <tr id="row_@GetID(item.Code)">
                                     <td>
                                         <div class="d-flex px-2 py-1">
                                             <div class="d-flex flex-column justify-content-center">
@@ -231,8 +231,8 @@
                                     @if (item.Status == false)
                                     {
                                         <td class="align-middle text-center">
-                                            <a href="/ListReceiptRefund/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
-                                            <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
+                                            <a href="/ListReceiptRefund/Edit/@GetID(item.Code)"><i class="material-icons">edit_note</i></a>
+                                            <a class="delete" href="#" id="@GetID(item.Code)"><i class="material-icons">delete</i></a>
                                         </td>
                                     }
                                     else

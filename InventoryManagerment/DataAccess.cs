@@ -898,44 +898,40 @@ namespace InventoryManagerment
             }
             if (dateImport.HasValue)
             {
-                var result = from import in db.Imports
+                var result = (from import in db.Imports
                              join supplier in db.Suppliers on import.SupplierID equals supplier.ID
                              join supply in db.ImportDetails on import.Code equals supply.ImportCode
                              join product in db.Products on supply.ProductCode equals product.Code
-                             group new { import, supply, supplier, product } by new { import.Code } into grp
-                             where grp.First().import.Note.Contains(note) && grp.FirstOrDefault().product.Name.Contains(productName) && grp.FirstOrDefault().supplier.Name.Contains(searchString) && grp.FirstOrDefault().import.ImportDelete == status && grp.FirstOrDefault().import.Time.Year == dateImport.Value.Year && grp.FirstOrDefault().import.Time.Month== dateImport.Value.Month && grp.FirstOrDefault().import.Time.Day==dateImport.Value.Day                            
+                             where import.Note.Contains(note) && product.Name.Contains(productName) && supplier.Name.Contains(searchString) && import.ImportDelete == status && import.Time.Year == dateImport.Value.Year && import.Time.Month== dateImport.Value.Month && import.Time.Day==dateImport.Value.Day                            
                              select new ImportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().import.ID,
-                                 Code = grp.Key.Code,
-                                 NameSupplier = grp.FirstOrDefault().supplier.Name,
-                                 Note = grp.FirstOrDefault().import.Note,
-                                 Time = grp.FirstOrDefault().import.Time,
-                                 ImportDelete = grp.FirstOrDefault().import.ImportDelete,
-                                 NameSupply = grp.FirstOrDefault().product.Code,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice
-                             };
+                                 ID = import.ID,
+                                 Code = import.Code,
+                                 NameSupplier = supplier.Name,
+                                 Note = import.Note,
+                                 Time = import.Time,
+                                 ImportDelete = import.ImportDelete,
+                                 NameSupply = product.Code,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else
             {
-                var result = from import in db.Imports
+                var result = (from import in db.Imports
                              join supplier in db.Suppliers on import.SupplierID equals supplier.ID
                              join supply in db.ImportDetails on import.Code equals supply.ImportCode
                              join product in db.Products on supply.ProductCode equals product.Code
-                             group new { import, supply, supplier, product } by new { import.Code } into grp
-                             where grp.FirstOrDefault().import.Note.Contains(note) && grp.FirstOrDefault().product.Name.Contains(productName) && grp.FirstOrDefault().supplier.Name.Contains(searchString) && grp.FirstOrDefault().import.ImportDelete == status
+                             where import.Note.Contains(note) && product.Name.Contains(productName) && supplier.Name.Contains(searchString) && import.ImportDelete == status
                              select new ImportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().import.ID,
-                                 Code = grp.Key.Code,
-                                 NameSupplier = grp.FirstOrDefault().supplier.Name,
-                                 Note = grp.FirstOrDefault().import.Note,
-                                 Time = grp.FirstOrDefault().import.Time,
-                                 ImportDelete = grp.FirstOrDefault().import.ImportDelete,
-                                 NameSupply = grp.FirstOrDefault().product.Code,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice
-                             };
+                                 ID = import.ID,
+                                 Code = import.Code,
+                                 NameSupplier = supplier.Name,
+                                 Note = import.Note,
+                                 Time = import.Time,
+                                 ImportDelete = import.ImportDelete,
+                                 NameSupply = product.Code,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             
@@ -1236,99 +1232,87 @@ namespace InventoryManagerment
             }
             if (dateExport.HasValue && statusExoport.HasValue)
             {
-                var result = from export in db.Exports
+                var result = (from export in db.Exports
                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on export.UserID equals users.ID
-                             group new { export, customer, supply, product, users } by new { export.Code } into grp
-                             where grp.FirstOrDefault().export.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().export.Delivery.Contains(staffName) && grp.FirstOrDefault().users.Name.Contains(userName) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().export.Status == statusExoport.Value && grp.FirstOrDefault().export.Time.Year == dateExport.Value.Year && grp.FirstOrDefault().export.Time.Month == dateExport.Value.Month && grp.FirstOrDefault().export.Time.Day == dateExport.Value.Day && grp.FirstOrDefault().export.ExportDelete == false
+                             where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.Name.Contains(userName) && product.Name.Contains(nameProduct) && export.Status == statusExoport.Value && export.Time.Year == dateExport.Value.Year && export.Time.Month == dateExport.Value.Month && export.Time.Day == dateExport.Value.Day && export.ExportDelete == false
                              select new ExportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().export.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 Note = grp.FirstOrDefault().export.Note,
-                                 Time = grp.FirstOrDefault().export.Time,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice,
-                                 Delivery = grp.FirstOrDefault().export.Delivery,
-                                 ExportDelete = grp.FirstOrDefault().export.ExportDelete,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Status = grp.FirstOrDefault().export.Status
-                             };
-                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);          
-            }
-            else if(!dateExport.HasValue && statusExoport.HasValue)
-            {
-                var result = from export in db.Exports
-                             join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
-                             join supply in db.ExportDetails on export.Code equals supply.ExportCode
-                             join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on export.UserID equals users.ID
-                             group new { export, customer, supply, product, users } by new { export.Code } into grp
-                             where grp.FirstOrDefault().export.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().export.Delivery.Contains(staffName) && grp.FirstOrDefault().users.Name.Contains(userName) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().export.ExportDelete == false && grp.FirstOrDefault().export.Status == statusExoport.Value
-                             select new ExportViewModel()
-                             {
-                                 ID = grp.FirstOrDefault().export.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 Note = grp.FirstOrDefault().export.Note,
-                                 Time = grp.FirstOrDefault().export.Time,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice,
-                                 Delivery = grp.FirstOrDefault().export.Delivery,
-                                 ExportDelete = grp.FirstOrDefault().export.ExportDelete,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Status = grp.FirstOrDefault().export.Status
-                             };
+                                 Code = export.Code,
+                                 CustomerName = customer.Name,
+                                 Note = export.Note,
+                                 Time = export.Time,
+                                 Delivery = export.Delivery,
+                                 ExportDelete = export.ExportDelete,
+                                 NameUser = users.Name,
+                                 Status = export.Status
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
-            else if(dateExport.HasValue && !statusExoport.HasValue)
+            else if (!dateExport.HasValue && statusExoport.HasValue)
             {
-                var result = from export in db.Exports
+                var result = (from export in db.Exports
                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on export.UserID equals users.ID
-                             group new { export, customer, supply, product, users } by new { export.Code } into grp
-                             where grp.FirstOrDefault().export.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().export.Delivery.Contains(staffName) && grp.FirstOrDefault().users.Name.Contains(userName) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().export.Time.Year == dateExport.Value.Year && grp.FirstOrDefault().export.Time.Month == dateExport.Value.Month && grp.FirstOrDefault().export.Time.Day == dateExport.Value.Day && grp.FirstOrDefault().export.ExportDelete == false
+                             where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.Name.Contains(userName) && product.Name.Contains(nameProduct) && export.ExportDelete == false && export.Status == statusExoport.Value
                              select new ExportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().export.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 Note = grp.FirstOrDefault().export.Note,
-                                 Time = grp.FirstOrDefault().export.Time,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice,
-                                 Delivery = grp.FirstOrDefault().export.Delivery,
-                                 ExportDelete = grp.FirstOrDefault().export.ExportDelete,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Status = grp.FirstOrDefault().export.Status
-                             };
+                                 Code = export.Code,
+                                 CustomerName = customer.Name,
+                                 Note = export.Note,
+                                 Time = export.Time,
+                                 Delivery = export.Delivery,
+                                 ExportDelete = export.ExportDelete,
+                                 NameUser = users.Name,
+                                 Status = export.Status
+                             }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }
+            else if (dateExport.HasValue && !statusExoport.HasValue)
+            {
+                var result = (from export in db.Exports
+                             join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
+                             join supply in db.ExportDetails on export.Code equals supply.ExportCode
+                             join product in db.Products on supply.ProductCode equals product.Code
+                             join users in db.Users on export.UserID equals users.ID                           
+                             where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.Name.Contains(userName) && product.Name.Contains(nameProduct) && export.Time.Year == dateExport.Value.Year && export.Time.Month == dateExport.Value.Month && export.Time.Day == dateExport.Value.Day && export.ExportDelete == false
+                             select new ExportViewModel()
+                             {
+                                 Code = export.Code,
+                                 CustomerName = customer.Name,
+                                 Note = export.Note,
+                                 Time = export.Time,
+                                 Delivery = export.Delivery,
+                                 ExportDelete = export.ExportDelete,
+                                 NameUser = users.Name,
+                                 Status = export.Status
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else
             {
-                var result = from export in db.Exports
+                var result = (from export in db.Exports
                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on export.UserID equals users.ID
-                             group new { export, customer, supply, product, users } by new { export.Code } into grp
-                             where grp.FirstOrDefault().export.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().export.Delivery.Contains(staffName) && grp.FirstOrDefault().users.Name.Contains(userName) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().export.ExportDelete == false
+                             where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.Name.Contains(userName) && product.Name.Contains(nameProduct) && export.ExportDelete == false
                              select new ExportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().export.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 Note = grp.FirstOrDefault().export.Note,
-                                 Time = grp.FirstOrDefault().export.Time,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice,
-                                 Delivery = grp.FirstOrDefault().export.Delivery,
-                                 ExportDelete = grp.FirstOrDefault().export.ExportDelete,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Status = grp.FirstOrDefault().export.Status
-                             };
-                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+                                 Code = export.Code,
+                                 CustomerName = customer.Name,
+                                 Note = export.Note,
+                                 Time = export.Time,
+                                 Delivery = export.Delivery,
+                                 ExportDelete = export.ExportDelete,
+                                 NameUser = users.Name,
+                                 Status = export.Status
+                             }).Distinct();
+            return result.OrderByDescending(x=>x.Time).ToPagedList(page,pageSize);
             }
         }
         public ExportForm GetExportForm(long id)
@@ -1812,94 +1796,82 @@ namespace InventoryManagerment
             }
             if (status.HasValue && dateRefund.HasValue)
             {
-                var result = from refund in db.Refunds
+                var result = (from refund in db.Refunds
                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on refund.UserID equals users.ID                            
-                             group new { refund, customer, supply, product, users } by new { refund.Code } into grp
-                             where grp.FirstOrDefault().refund.Note.Contains(note) && grp.FirstOrDefault().refund.Status == status && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().users.Name.Contains(nameStaff) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().refund.Time.Year == dateRefund.Value.Year && grp.FirstOrDefault().refund.Time.Month == dateRefund.Value.Month && grp.FirstOrDefault().refund.Time.Day == dateRefund.Value.Day && grp.FirstOrDefault().refund.RefundDelete == false
+                             where refund.Note.Contains(note) && refund.Status == status && customer.Name.Contains(searchString) && users.Name.Contains(nameStaff) && product.Name.Contains(nameProduct) && refund.Time.Year == dateRefund.Value.Year && refund.Time.Month == dateRefund.Value.Month && refund.Time.Day == dateRefund.Value.Day && refund.RefundDelete == false
                              select new RefundViewModel()
                              {
-                                 ID = grp.FirstOrDefault().refund.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Note = grp.FirstOrDefault().refund.Note,
-                                 Time = grp.FirstOrDefault().refund.Time,
-                                 RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
-                                 Status = grp.FirstOrDefault().refund.Status,
-                                 TotalPrice = grp.Sum(x => x.supply.Quantity * x.supply.Price)
-                             };
+                                 Code = refund.Code,
+                                 CustomerName = customer.Name,
+                                 NameUser = users.Name,
+                                 Note = refund.Note,
+                                 Time = refund.Time,
+                                 RefundDelete = refund.RefundDelete,
+                                 Status = refund.Status,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else if(status.HasValue && !dateRefund.HasValue)
             {
-                var result = from refund in db.Refunds
+                var result = (from refund in db.Refunds
                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
                              join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on refund.UserID equals users.ID
-                             group new { refund, customer, supply, product, users } by new { refund.Code } into grp
-                             where grp.FirstOrDefault().refund.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().users.Name.Contains(nameStaff) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().refund.RefundDelete == false && grp.FirstOrDefault().refund.Status== status
+                             join users in db.Users on refund.UserID equals users.ID                            
+                             where refund.Note.Contains(note) && customer.Name.Contains(searchString) && users.Name.Contains(nameStaff) && product.Name.Contains(nameProduct) && refund.RefundDelete == false && refund.Status== status
                              select new RefundViewModel()
                              {
-                                 ID = grp.FirstOrDefault().refund.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Note = grp.FirstOrDefault().refund.Note,
-                                 Time = grp.FirstOrDefault().refund.Time,
-                                 RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
-                                 Status = grp.FirstOrDefault().refund.Status,
-                                 TotalPrice = grp.Sum(x => x.supply.Quantity * x.supply.Price)
-                             };
+                                 Code = refund.Code,
+                                 CustomerName = customer.Name,
+                                 NameUser = users.Name,
+                                 Note = refund.Note,
+                                 Time = refund.Time,
+                                 RefundDelete = refund.RefundDelete,
+                                 Status = refund.Status,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else if(!status.HasValue && dateRefund.HasValue)
             {
-                var result = from refund in db.Refunds
+                var result = (from refund in db.Refunds
                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on refund.UserID equals users.ID
-                             group new { refund, customer, supply, product, users } by new { refund.Code } into grp
-                             where grp.FirstOrDefault().refund.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().users.Name.Contains(nameStaff) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().refund.Time.Year == dateRefund.Value.Year && grp.FirstOrDefault().refund.Time.Month == dateRefund.Value.Month && grp.FirstOrDefault().refund.Time.Day == dateRefund.Value.Day && grp.FirstOrDefault().refund.RefundDelete == false
+                             where refund.Note.Contains(note) && customer.Name.Contains(searchString) && users.Name.Contains(nameStaff) && product.Name.Contains(nameProduct) && refund.Time.Year == dateRefund.Value.Year && refund.Time.Month == dateRefund.Value.Month && refund.Time.Day == dateRefund.Value.Day && refund.RefundDelete == false
                              select new RefundViewModel()
                              {
-                                 ID = grp.FirstOrDefault().refund.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Note = grp.FirstOrDefault().refund.Note,
-                                 Time = grp.FirstOrDefault().refund.Time,
-                                 RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
-                                 Status = grp.FirstOrDefault().refund.Status,
-                                 TotalPrice = grp.Sum(x => x.supply.Quantity * x.supply.Price)
-                             };
+                                 Code = refund.Code,
+                                 CustomerName = customer.Name,
+                                 NameUser = users.Name,
+                                 Note = refund.Note,
+                                 Time = refund.Time,
+                                 RefundDelete = refund.RefundDelete,
+                                 Status = refund.Status,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else
             {
-                var result = from refund in db.Refunds
+                var result = (from refund in db.Refunds
                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
                              join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on refund.UserID equals users.ID
-                             group new { refund, customer, supply, product, users } by new { refund.Code } into grp
-                             where grp.FirstOrDefault().refund.Note.Contains(note) && grp.FirstOrDefault().customer.Name.Contains(searchString) && grp.FirstOrDefault().users.Name.Contains(nameStaff) && grp.FirstOrDefault().product.Name.Contains(nameProduct) && grp.FirstOrDefault().refund.RefundDelete == false
+                             join users in db.Users on refund.UserID equals users.ID                          
+                             where refund.Note.Contains(note) && customer.Name.Contains(searchString) && users.Name.Contains(nameStaff) && product.Name.Contains(nameProduct) && refund.RefundDelete == false
                              select new RefundViewModel()
                              {
-                                 ID = grp.FirstOrDefault().refund.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Note = grp.FirstOrDefault().refund.Note,
-                                 Time = grp.FirstOrDefault().refund.Time,
-                                 RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
-                                 Status = grp.FirstOrDefault().refund.Status,
-                                 TotalPrice = grp.Sum(x => x.supply.Quantity * x.supply.Price)
-                             };
+                                 Code = refund.Code,
+                                 CustomerName = customer.Name,
+                                 NameUser = users.Name,
+                                 Note = refund.Note,
+                                 Time = refund.Time,
+                                 RefundDelete = refund.RefundDelete,
+                                 Status = refund.Status,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
         }
@@ -2376,52 +2348,45 @@ namespace InventoryManagerment
             }
             if (dateExport.HasValue)
             {
-                var result = from export in db.Exports
+                var result = (from export in db.Exports
                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on export.UserID equals users.ID
                              where users.UserName == userName && export.Note.Contains(searchString) && customer.Name.Contains(searchString) && product.Name.Contains(searchString) && export.Time.Year == dateExport.Value.Year && export.Time.Month == dateExport.Value.Month && export.Time.Day == dateExport.Value.Day && export.ExportDelete == status
-                             group new { export, customer, supply, product, users } by new { export.Code } into grp
                              select new ExportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().export.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 Note = grp.FirstOrDefault().export.Note,
-                                 Time = grp.FirstOrDefault().export.Time,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice,
-                                 Delivery = grp.FirstOrDefault().export.Delivery,
-                                 ExportDelete = grp.FirstOrDefault().export.ExportDelete,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Status = grp.FirstOrDefault().export.Status
-                             };
+                                 Code = export.Code,
+                                 CustomerName = customer.Name,
+                                 Note = export.Note,
+                                 Time = export.Time,
+                                 Delivery = export.Delivery,
+                                 ExportDelete = export.ExportDelete,
+                                 NameUser = users.Name,
+                                 Status = export.Status
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
 
             }
             else
             {
-                var result = from export in db.Exports
+                var result = (from export in db.Exports
                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on export.UserID equals users.ID
                              where users.UserName == userName && export.Note.Contains(searchString) && customer.Name.Contains(searchString) && product.Name.Contains(searchString) && export.ExportDelete == status
-                             
-                             group new { export, customer, supply, product, users } by new { export.Code } into grp
                              select new ExportViewModel()
                              {
-                                 ID = grp.FirstOrDefault().export.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 Note = grp.FirstOrDefault().export.Note,
-                                 Time = grp.FirstOrDefault().export.Time,
-                                 TotalPrice = grp.FirstOrDefault().product.Quantity * grp.FirstOrDefault().product.ImportPrice,
-                                 Delivery = grp.FirstOrDefault().export.Delivery,
-                                 ExportDelete = grp.FirstOrDefault().export.ExportDelete,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Status = grp.FirstOrDefault().export.Status
-                             };
+                                 Code = export.Code,
+                                 CustomerName = customer.Name,
+                                 Note = export.Note,
+                                 Time = export.Time,
+                                 Delivery = export.Delivery,
+                                 ExportDelete = export.ExportDelete,
+                                 NameUser = users.Name,
+                                 Status = export.Status
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
 
             }
@@ -2438,7 +2403,7 @@ namespace InventoryManagerment
             }
             if (dateRefund.HasValue)
             {
-                var result = from refund in db.Refunds
+                var result = (from refund in db.Refunds
                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
                              join product in db.Products on supply.ProductCode equals product.Code
@@ -2447,7 +2412,6 @@ namespace InventoryManagerment
                              group new { refund, customer, supply, product, users } by new { refund.Code } into grp
                              select new RefundViewModel()
                              {
-                                 ID = grp.FirstOrDefault().refund.ID,
                                  Code = grp.Key.Code,
                                  CustomerName = grp.FirstOrDefault().customer.Name,
                                  NameUser = grp.FirstOrDefault().users.Name,
@@ -2455,31 +2419,27 @@ namespace InventoryManagerment
                                  Time = grp.FirstOrDefault().refund.Time,
                                  RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
                                  Status = grp.FirstOrDefault().refund.Status,
-                                 TotalPrice = grp.Sum(x => x.supply.Quantity * x.supply.Price)
-                             };
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else
             {
-                var result = from refund in db.Refunds
+                var result = (from refund in db.Refunds
                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
                              join product in db.Products on supply.ProductCode equals product.Code
                              join users in db.Users on refund.UserID equals users.ID
-                             where refund.Note.Contains(searchString) && customer.Name.Contains(searchString) && users.Name.Contains(searchString) & product.Name.Contains(searchString) && refund.RefundDelete == status && users.UserName == userName
-                             group new { refund, customer, supply, product, users } by new { refund.Code } into grp
+                             where refund.Note.Contains(searchString) && customer.Name.Contains(searchString) && users.Name.Contains(searchString) & product.Name.Contains(searchString) && refund.RefundDelete == status && users.UserName == userName                   
                              select new RefundViewModel()
                              {
-                                 ID = grp.FirstOrDefault().refund.ID,
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Note = grp.FirstOrDefault().refund.Note,
-                                 Time = grp.FirstOrDefault().refund.Time,
-                                 RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
-                                 Status = grp.FirstOrDefault().refund.Status,
-                                 TotalPrice = grp.Sum(x => x.supply.Quantity * x.supply.Price)
-                             };
+                                 Code = refund.Code,
+                                 CustomerName = customer.Name,
+                                 NameUser = users.Name,
+                                 Note = refund.Note,
+                                 Time = refund.Time,
+                                 RefundDelete = refund.RefundDelete,
+                                 Status = refund.Status,
+                             }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
         }

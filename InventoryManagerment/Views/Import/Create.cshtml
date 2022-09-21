@@ -315,18 +315,9 @@
                     $('#txtSupplier').focusout(function () {
                         if ($('#txtSupplier').val().trim().length > 0) {
                             var nameSupplier = $('#txtSupplier').val().trim();
-                            var count = 0;
-                            listSupplier.forEach(item => {
-                                if (item.Name == nameSupplier) {
-                                    count += 1;
-                                    return false;
-                                }
-                            });
-                            if (count == 0) {
+                            if (jQuery.inArray(nameSupplier, dataSupplier) == -1) {
                                 hideAlert($('#txtSupplier'));
-                                $('div.container-fluid div.row:eq(0) div.input-group:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có nhà cung cấp này bạn có muốn thêm mới không ? <a onclick="setNameSupplier()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#supplierModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert($(\'#txtSupplier\'))">X</a></label><div>');
-                            } else {
-                                hideAlert($('#txtSupplier'));
+                                $('div.container-fluid div.row:eq(0) div.input-group:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có nhà cung cấp này bạn có muốn thêm mới không ? <a onclick="setNameSupplier()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#supplierModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert($(\'#txtSupplier\'))">X</a></label><div>')
                             }
                         }
                     });
@@ -341,7 +332,7 @@
         }
         function hideAlert(element) {
             $('.tatsau1s').hide(1000, "linear");
-            if (element != null) {
+            if (element == null) {
                 element.val("");
             }            
         }
