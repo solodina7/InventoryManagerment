@@ -26,9 +26,9 @@
     }
     string ProcessText(string text)
     {
-        return "<p>"+text.Replace("|", "<br/>") +"</p>";
+        return "<p>" + text.Replace("|", "<br/>") + "</p>";
     }
-    long GetID(string code,int key)
+    long GetID(string code, int key)
     {
         var db = new InventoryManagerment.Models.EF.InventoryDbContext();
         if (key == 1)
@@ -44,7 +44,66 @@
             return db.Refunds.Where(x => x.Code == code).FirstOrDefault().ID;
         }
     }
+}
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Tìm kiếm</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Receipt", "History", method: FormMethod.Get))
+                {
+                    <div class="row">
+                        <div class="input-group input-group-static my-3">
+                            <label for="ActionKey" class="ms-0">Loại hoạt động</label>
+                            <select class="form-control" name="actionKey" id="ActionKey">
+                                <option value="">Tất cả</option>
+                                <option value="insert">Thêm mới</option>
+                                <option value="update">Cập nhật</option>
+                                <option value="delete">Xóa</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-static my-3">
+                            <label>Date</label>
+                            <input value="@ViewBag.time" class="form-control" name="time" type="date" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@foreach (var item in Model)
+{
+    if (item.ActionKey == "update")
+    {
+        <!-- Modal -->
+        <div class="modal fade" id="Noidung_@item.ID" tabindex="-1" role="dialog" aria-labelledby="Noidung_@item.ID" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Chi tiết chỉnh sửa</h5>
+                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        @Html.Raw(ProcessText(item.Text))
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
+}
 <div class="row">
     <div class="col-12">
         <div class="card my-4">
@@ -62,41 +121,6 @@
                 <div class="px-2 mb-1">
                     <div class="row">
                         <div class="col-sm-auto">
-                            
-                            <!-- Modal -->
-                            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Tìm kiếm</h5>
-                                            <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            @using (Html.BeginForm("Receipt", "History", method: FormMethod.Get))
-                                            {
-                                                <div class="row">
-                                                    <div class="input-group input-group-static my-3">
-                                                        <label for="ActionKey" class="ms-0">Loại hoạt động</label>
-                                                        <select class="form-control" name="actionKey" id="ActionKey">
-                                                            <option value="">Tất cả</option>
-                                                            <option value="insert">Thêm mới</option>
-                                                            <option value="update">Cập nhật</option>
-                                                            <option value="delete">Xóa</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group input-group-static my-3">
-                                                        <label>Date</label>
-                                                        <input value="@ViewBag.time" class="form-control" name="time" type="date" />
-                                                    </div>
-                                                </div>
-                                                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -115,77 +139,58 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                            <tr id="row_@item.ID">
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@i</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@item.Date.ToString("dd/MM/yyyy | HH:mm")</h6>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@item.ReceiptCode</h6>
-                                </td>
-                                <td>
-                                    @if (item.ActionKey == "update")
-                                    {
-                                        <p class="mb-0 text-sm">@GetTextUpdate(item.Text) với mã phiếu '@item.ReceiptCode'<a class="bold" href="javascript:;" data-bs-toggle="modal" data-bs-target="#Noidung_@item.ID"> Xem chi tiết chỉnh sửa</a></p>
-                                        <!-- Modal -->
-                                        <div class="modal fade" id="Noidung_@item.ID" tabindex="-1" role="dialog" aria-labelledby="Noidung_@item.ID" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Chi tiết chỉnh sửa</h5>
-                                                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        @Html.Raw(ProcessText(item.Text))
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
-                                                    </div>
-                                                </div>
+                                <tr id="row_@item.ID">
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@i</h6>
                                             </div>
                                         </div>
-                                    }
-                                    else if (item.ActionKey == "delete")
-                                    {
-                                        if (item.Object == "phiếu trả hàng")
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@item.Date.ToString("dd/MM/yyyy | HH:mm")</h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@item.ReceiptCode</h6>
+                                    </td>
+                                    <td>
+                                        @if (item.ActionKey == "update")
                                         {
-                                            <p class="mb-0 text-sm">@item.Text <a class="bold" target="_blank" href="/History/DetailRefund/@GetID(item.ReceiptCode,3)" data-bs-toggle="modal" data-bs-target="#Noidung_@item.ID">Xem chi tiết</a></p>
+                                            <p class="mb-0 text-sm">@GetTextUpdate(item.Text) với mã phiếu '@item.ReceiptCode'<a class="bold" href="javascript:;" data-bs-toggle="modal" data-bs-target="#Noidung_@item.ID"> Xem chi tiết chỉnh sửa</a></p>
                                         }
-                                        else if (item.Object == "phiếu xuất")
+                                        else if (item.ActionKey == "delete")
                                         {
-                                            <p class="mb-0 text-sm">@item.Text <a class="bold" target="_blank" href="/History/DetailExport/@GetID(item.ReceiptCode,1)" data-bs-toggle="modal" data-bs-target="#Noidung_@item.ID">Xem chi tiết</a></p>
+                                            if (item.Object == "phiếu trả hàng")
+                                            {
+                                                <p class="mb-0 text-sm">@item.Text <a class="bold" target="_blank" href="/History/DetailRefund/@GetID(item.ReceiptCode,3)">Xem chi tiết</a></p>
+                                            }
+                                            else if (item.Object == "phiếu xuất")
+                                            {
+                                                <p class="mb-0 text-sm">@item.Text <a class="bold" target="_blank" href="/History/DetailExport/@GetID(item.ReceiptCode,1)">Xem chi tiết</a></p>
+                                            }
+                                            else if (item.Object == "phiếu nhập")
+                                            {
+                                                <p class="mb-0 text-sm">@item.Text <a class="bold" target="_blank" href="/History/DetailImport/@GetID(item.ReceiptCode,2)">Xem chi tiết</a></p>
+                                            }
+
                                         }
-                                        else if (item.Object == "phiếu nhập")
+                                        else
                                         {
-                                            <p class="mb-0 text-sm">@item.Text <a class="bold" target="_blank" href="/History/DetailImport/@GetID(item.ReceiptCode,2)" data-bs-toggle="modal" data-bs-target="#Noidung_@item.ID">Xem chi tiết</a></p>
+                                            <p class="mb-0 text-sm">@item.Text</p>
                                         }
 
-                                    }
-                                    else
-                                    {
-                                        <p class="mb-0 text-sm">@item.Text</p>
-                                    }
-
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@GetActionKey(item.ActionKey)</h6>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@GetActionKey(item.ActionKey)</h6>
+                                    </td>
+                                </tr>
                                 i++;
                             }
                         </tbody>
                     </table>
                     <div style="text-align:center">
                         <div id="listPagination" style="display:inline-block">
-                            @Html.PagedListPager(Model, page => Url.Action("Receipt", new { page, searchString = ViewBag.searchString }))
+                            @Html.PagedListPager(Model, page => Url.Action("Receipt", new { page, searchString = ViewBag.searchString, actionKey = ViewBag.actionKey, time = ViewBag.time }))
                         </div>
                     </div>
                 </div>
@@ -198,6 +203,7 @@
     <script>
         $(document).ready(function () {
             addClasslist();
+            setValue();
         });
         function addClasslist() {
             $('#listPagination ul li').each(function () {
@@ -205,7 +211,10 @@
                 $(this).find('a').addClass('page-link')
             });
         }
-        addClasslist();
+        function setValue() {
+            var type = '@ViewBag.actionKey';
+            $('#ActionKey option[value=' + type+']').attr('selected', 'selected');
+        }
     </script>
 }
 

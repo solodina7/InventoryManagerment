@@ -171,5 +171,10 @@ namespace InventoryManagerment.Controllers
             var listUnit = new DataAccess().ListAllUnitToViewBag();
             ViewBag.UnitID = new SelectList(listUnit, "ID", "Name", selectedunit);
         }
+        public JsonResult GetDetailSupplier(long code)
+        {
+            var model = new DataAccess().GetDetailSupplier(code);
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
     }
 }

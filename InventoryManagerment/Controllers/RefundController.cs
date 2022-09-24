@@ -129,7 +129,7 @@ namespace InventoryManagerment.Controllers
         public void ChangeStatus(string code)
         {
             code = code.Substring(1, code.Length - 1);
-            new DataAccess().ChangeStatus(code, "refund");
+            new DataAccess().ChangeStatus(code, "refund",GetUserName());
         }
         [HttpGet]
         public JsonResult GetDataRefund(string code)

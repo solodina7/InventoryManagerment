@@ -518,6 +518,7 @@
     <Compile Include="ViewModel\RefundModel.cs" />
     <Compile Include="ViewModel\RefundViewModel.cs" />
     <Compile Include="ViewModel\SupplierViewModel.cs" />
+    <Compile Include="ViewModel\SupplyDetailModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />

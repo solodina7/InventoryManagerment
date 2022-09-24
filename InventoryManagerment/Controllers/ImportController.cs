@@ -56,10 +56,9 @@ namespace InventoryManagerment.Controllers
             return Json("Thêm phiếu nhập thành công",JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        public JsonResult CreateProduct(Product product)
+        public void CreateProduct(Product product)
         {
             new DataAccess().InsertProduct(product, GetUserName());
-            return Json("",JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public void CreateSupplier (string name,string code)

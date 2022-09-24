@@ -71,9 +71,9 @@
     {
         decimal tongtien = 0;
         var listproductx = db.ImportDetails.Where(x => x.ProductCode == code && x.ImportDetailDelete == false).ToList();
-        if(listproductx.Count != 0)
+        if (listproductx.Count != 0)
         {
-            foreach(var item in listproductx)
+            foreach (var item in listproductx)
             {
                 tongtien += item.ImportPrice;
             }
@@ -114,6 +114,22 @@
         return sb.ToString();
     }
 }
+<!-- Modal Customer -->
+<div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="exampleModalLabel"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">person</i>Thông tin khách hàng</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="modalBody" class="modal-body">
+
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
     <div class="input-group input-group-static my-3">
@@ -121,8 +137,15 @@
         <input type="datetime-local" id="txtTime" name="txtTime" class="form-control" value="@Model.Refund.Time.ToString("yyyy-MM-ddTHH:mm")" />
     </div>
     <div class="input-group input-group-static my-3">
-        <label>Chọn khách hàng</label>
-        <input class="form-control" id="txtCustomerName" />
+        <label>Khách hàng</label>
+        <div class="col-12">
+            <div class="col">
+                <input class="form-control" id="txtCustomerName" />
+            </div>
+            <div class="col-auto">
+                <span onclick="showInfo()" style="cursor:pointer;" class="input-group-text" id="basic-addon2"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#customerModal"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">infor</i></a></span>
+            </div>
+        </div>      
     </div>
     <div class="input-group input-group-static my-3">
         <label>Trạng thái</label>
@@ -224,6 +247,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Loại sản phẩm</label>
                     <select id="txtCategoryID" class="form-control">
+                        <option value="0">Chọn loại sản phẩm</option>
                         @foreach (var item in listCategory)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -239,6 +263,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Đơn vị tính</label>
                     <select class="form-control" id="txtUnitProduct">
+                        <option value="0">Chọn đơn vị tính</option>
                         @foreach (var item in listUnit)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -249,6 +274,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Cách đóng gói</label>
                     <select class="form-control" id="txtPackageProduct">
+                        <option value="0">Chọn cách đóng gói</option>
                         @foreach (var item in listPackage)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -262,7 +288,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button id="btnSaveProduct" type="submit" data-bs-dismiss="modal" class="btn bg-gradient-primary">Lưu sản phẩm</button>
+                    <button id="btnSaveProduct" type="submit" class="btn bg-gradient-primary">Lưu sản phẩm</button>
                 </div>
             </div>
         </div>
@@ -272,7 +298,7 @@
     @Html.Raw(addProductModel())
     @Html.Raw(addListCustomer());
     @Html.Raw(addCustomerModel());
-<script>
+    <script>
         $(document).ready(function () {
             $("#btnAddProduct").click(function () {
                 AddProductRecord();
@@ -379,6 +405,11 @@
             });
             if (temp > 0) {
                 $.alert('Sản phẩm này đã tồn tại vui lòng kiểm tra lại');
+                $('#txtProductName').focus();
+                return;
+            }
+            if (jQuery.inArray($('#txtProductName').val(), dataProduct) == -1) {
+                $.alert('Sản phẩm này không tồn tại');
                 $('#txtProductName').focus();
                 return;
             }
@@ -575,6 +606,46 @@
             var packageName = $('#txtPackageProduct option:selected').text();
             var packageID = $('#txtPackageProduct option:selected').val();
             var quantityAlert = $('#txtAlertQuantity').val();
+
+            if (nameProduct.length == 0) {
+                $.alert('Vui lòng nhập tên sản phẩm');
+                $('#txtNameProduct').focus();
+                return;
+            }
+            if (categoryID == 0) {
+                $.alert('Vui lòng chọn loại sản phẩm');
+                $('##txtCategoryID').focus();
+                return;
+            }
+            if (priceProduct.length == 0) {
+                $.alert('Vui lòng nhập giá sản phẩm');
+                $('#txtPriceProduct').focus();
+                return;
+            }
+            if (unitID == 0) {
+                $.alert('Vui lòng chọn đơn vị tính');
+                $('#txtUnitProduct').focus();
+                return;
+            }
+            if (packageID == 0) {
+                $.alert('Vui lòng chọn cách đóng gói');
+                $('#txtPackageProduct').focus();
+                return;
+            }
+            if (quantityAlert.length == 0) {
+                $.alert('Vui lòng nhập số lượng tối thiểu');
+                $('#txtAlertQuantity').focus();
+                return;
+            }
+            if (!$.isNumeric(priceProduct)) {
+                $.alert('Vui lòng nhập giá là giá trị số');
+                return;
+            }
+            if (!$.isNumeric(quantityAlert)) {
+                $.alert('Vui lòng nhập số lượng tối thiểu là giá trị số');
+                return;
+            }
+
             var product = {};
             product.Code = code
             product.Name = nameProduct;
@@ -583,28 +654,40 @@
             product.UnitID = unitID;
             product.PackageID = packageID;
             product.QuantityAlert = quantityAlert;
-            $.ajax({
-                async: true,
-                type: 'POST',
-                dataType: 'JSON',
-                contentType: 'application/json; charset=utf=8',
-                url: '/Import/CreateProduct/',
-                data: JSON.stringify(product),
-                success: function () {
-                    $.alert("Thêm sản phẩm thành công");
-                    ClearState();
-                    AddModelProduct(nameProduct, code, 0, 0, unitID, packageID, listProduct);
-                    var tensanpham = categoryName.trim() + " | " + nameProduct.trim() + " | " + packageName.trim();
-                    AddAutocomplete(tensanpham.trim(), dataProduct);
-                    hideAlert();
-                    $('#txtProductName').val(tensanpham.trim());
-                    $('#txtProductName').focus();
-                },
-                error: function () {
-                    $.alert("Thêm sản phẩm thất bại");
-                }
+            $.post("/Import/CreateProduct/", { product: product }, function () {
+                $.alert("Thêm sản phẩm thành công");
+                ClearState();
+                AddModelProduct(nameProduct, code, 0, 0, unitID, packageID, listProduct);
+                var tensanpham = categoryName.trim() + " | " + nameProduct.trim() + " | " + packageName.trim();
+                AddAutocomplete(tensanpham.trim(), dataProduct);
+                hideAlert();
+                $('#txtProductName').val(tensanpham.trim());
+                $('#txtProductName').focus();
             });
         };
-</script>
+        function showInfo() {
+            var customerName = $("#txtCustomerName").val();
+            var Name = "";
+            var Phone = "";
+            var Address = "";
+            var count = 0;
+            listCustomer.forEach(element => {
+                if (element.Name == customerName) {
+                    Name = element.Name;
+                    Phone = element.Phone;
+                    Address = element.Address;
+                    count++;
+                }
+            });
+            if (count == 0) {
+                $("#modalBody").html("");
+                $("#modalBody").append("<h6>Không tìm thấy thông tin khách hàng này</h6>");
+            }
+            else {
+                $("#modalBody").html("");
+                $("#modalBody").append("<h6>Tên khách hàng:<p>" + Name + "</p></h6><h6>Số điện thoại:<p>" + Phone + "</p></h6><h6>Địa chỉ:<p>" + Address + "</p></h6>");
+            }
+        };
+    </script>
     @Html.Raw(addListProduct())
 }

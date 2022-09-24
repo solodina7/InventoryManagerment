@@ -96,7 +96,6 @@
     }
 }
 <div class="row">
-    <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
     <div class="input-group input-group-static my-3">
         <label>Ngày nhập</label>
         <input disabled type="datetime-local" id="txtTime" name="txtTime" class="form-control" />
@@ -131,7 +130,6 @@
                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Số lượng</th>
                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Đơn vị tính</th>
                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Thành tiền</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,8 +140,7 @@
                             <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney(item.Price.ToString())</td>
                             <td class="align-middle text-center text-sm">@item.Quantity</td>
                             <td class="align-middle text-center text-sm" id="@item.UnitID">@GetUnitName(item.UnitID)</td>
-                            <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney((item.Quantity * item.Price).ToString())</td>
-                            <td><a class="editproduct" href="javascript:;" onclick="editproduct(this)"><i class="material-icons">edit</i></a><a href="javascript:;" onclick="this.closest('tr').remove()"><i class="material-icons">delete</i></a></td>
+                            <td class="align-middle text-center text-sm">@InventoryManagerment.Common.Functions.NumberToMoney((item.Quantity * item.Price).ToString())</td>      
                         </tr>
                     }
                 </tbody>

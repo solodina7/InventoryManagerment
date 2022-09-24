@@ -538,17 +538,16 @@ else
             <div class="card my-4">
                 <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                     <div class="row bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
-                        <div class="col-12">
+                        <div class="col-6">
                             <h6 class="mb-0 text-white text-capitalize ps-3">Danh sách sản phẩm trong kho</h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
                         </div>
                     </div>
                 </div>
                 <div class="card-body px-0 pb-2">
                     <div class="px-2 mb-1">
-                        <button type="button" class="btn bg-gradient-primary" data-bs-toggle="modal" data-bs-target="#searchModal">
-                            <span class="btn-inner--icon"><i class="material-icons">search</i></span>
-                            <span class="btn-inner--text">Tìm kiếm</span>
-                        </button>
                         <!-- Modal -->
                         <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchtitleModal" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -653,52 +652,52 @@ else
     @Html.Raw(addListProduct())
     @Html.Raw(addModelBussiness())
     <script>
-                $(document).ready(function () {
-                    AutoComplete(dataProduct, $("#searchString"));
-                });
-            function addClasslist() {
-                $('#listPagination ul li').each(function () {
-                    $(this).addClass('page-item');
-                    $(this).find('a').addClass('page-link')
-                });
-            }
-            function AutoComplete(dataProduct, element) {
-                element.autocomplete({
-                    source: dataProduct,
-                    minLength: 0,
-                },
-                    {
-                        autoFocus: true,
-                        delay: 0,
-                    });
-            }
-            addClasslist();
-            var xValues = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
-            new Chart("myChart", {
-                type: "line",
-                data: {
-                    labels: xValues,
-                    datasets: [{
-                        data: chitieutheothang,
-                        borderColor: "red",
-                        label: "Tổng tiền nhập hàng:",
-                        fill: false
-                    }, {
-                        data: loinhuantheothang,
-                        label: "Lợi nhuận",
-                        borderColor: "green",
-                        fill: true
-                    }, {
-                        data: doanhthutheothang,
-                        label: "Doanh thu",
-                        borderColor: "blue",
-                        fill: false
-                    }]
-                },
-                options: {
-                    legend: { display: true }
-                }
+        $(document).ready(function () {
+                AutoComplete(dataProduct, $("#searchString"));
+                addClasslist();
             });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        function AutoComplete(dataProduct, element) {
+            element.autocomplete({
+                source: dataProduct,
+                minLength: 0,
+            },
+                {
+                    autoFocus: true,
+                    delay: 0,
+                });
+        }
+        var xValues = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+        new Chart("myChart", {
+            type: "line",
+            data: {
+                labels: xValues,
+                datasets: [{
+                    data: chitieutheothang,
+                    borderColor: "red",
+                    label: "Tổng tiền nhập hàng:",
+                    fill: false
+                }, {
+                    data: loinhuantheothang,
+                    label: "Lợi nhuận",
+                    borderColor: "green",
+                    fill: true
+                }, {
+                    data: doanhthutheothang,
+                    label: "Doanh thu",
+                    borderColor: "blue",
+                    fill: false
+                }]
+            },
+            options: {
+                legend: { display: true }
+            }
+        });
     </script>
 }
 

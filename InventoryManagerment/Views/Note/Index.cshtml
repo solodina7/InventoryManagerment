@@ -3,10 +3,10 @@
 @model IPagedList<InventoryManagerment.Models.WINFORMS.NOTES>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    string GetNote (string text)
+    string GetNote(string text)
     {
         string chuoican = "";
-        for(int i = 60; i < text.Length; i++)
+        for (int i = 60; i < text.Length; i++)
         {
             if (text[i] == ' ')
             {
@@ -20,11 +20,22 @@
         }
         return chuoican;
     }
-    string Tudongxuongdong (string text)
-    {
-        return "<p>"+text.Replace("\n","</br>")+"</p>";
-    }
 }
+<!--Modal Note-->
+<div class="modal fade" id="ghichu" tabindex="-1" role="dialog" aria-labelledby="ghichuLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="ghichuLabel">Ghi chú</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row" id="productList">
     <div class="col-12">
         <div class="card my-4">
@@ -53,34 +64,34 @@
                                 <div class="modal-body">
                                     @using (Html.BeginForm("Index", "Note", method: FormMethod.Get))
                                     {
-                                    <div class="input-group mb-3">
-                                        <div class="input-group input-group-static mb-4">
-                                            <input placeholder="Nhập tên khách hàng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                        <div class="input-group mb-3">
+                                            <div class="input-group input-group-static mb-4">
+                                                <input placeholder="Nhập tên khách hàng" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <textarea placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" name="noteGhiChu">@ViewBag.noteGhiChu</textarea>
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <select name="status" class="form-control">
+                                                    <option value="Tất cả">Tất cả</option>
+                                                    <option value="Đã Thanh Toán">Đã Thanh Toán</option>
+                                                    <option value="Chưa Thanh Toán (Có HĐ)">Chưa Thanh Toán (Có HĐ)</option>
+                                                    <option value="Chưa Thanh Toán (Không HĐ)">Chưa Thanh Toán (Không HĐ)</option>
+                                                </select>
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateNote" id="dateNote" name="dateNote">
+                                            </div>
+                                            <div class="input-group input-group-static mb-4">
+                                                <select name="pageSize" class="form-control">
+                                                    <option value="10">Số dòng hiển thị</option>
+                                                    @for (int i = 15; i <= 100; i += 5)
+                                                    {
+                                                        <option value="@i">@i</option>
+                                                    }
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <textarea placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" name="noteGhiChu">@ViewBag.noteGhiChu</textarea>
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <select name="status" class="form-control">
-                                                <option value="Tất cả">Tất cả</option>
-                                                <option value="Đã Thanh Toán">Đã Thanh Toán</option>
-                                                <option value="Chưa Thanh Toán (Có HĐ)">Chưa Thanh Toán (Có HĐ)</option>
-                                                <option value="Chưa Thanh Toán (Không HĐ)">Chưa Thanh Toán (Không HĐ)</option>
-                                            </select>
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateNote" id="dateNote" name="dateNote">
-                                        </div>
-                                        <div class="input-group input-group-static mb-4">
-                                            <select name="pageSize" class="form-control">
-                                                <option value="10">Số dòng hiển thị</option>
-                                                @for (int i = 15; i <= 100; i += 5)
-                                                {
-                                                    <option value="@i">@i</option>
-                                                }
-                                            </select>
-                                        </div>
-                                    </div>
                                         <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
                                             <span class="btn-inner--icon"><i class="material-icons">search</i></span>
                                             <span class="btn-inner--text">Tìm kiếm</span>
@@ -107,16 +118,16 @@
                             {
                                 <tr id="row_@item.ID">
                                     @*<td>
-                                        <div class="d-flex px-2 py-1">
-                                            <div class="d-flex flex-column justify-content-center">
-                                                <h6 class="mb-0 text-sm">@item.Name</h6>
-                                                @if (item.CategoryID.HasValue)
-                                                {
-                                                    <p class="text-xs text-secondary mb-0">@GetCategoryName(item.CategoryID)</p>
-                                                }
+                                            <div class="d-flex px-2 py-1">
+                                                <div class="d-flex flex-column justify-content-center">
+                                                    <h6 class="mb-0 text-sm">@item.Name</h6>
+                                                    @if (item.CategoryID.HasValue)
+                                                    {
+                                                        <p class="text-xs text-secondary mb-0">@GetCategoryName(item.CategoryID)</p>
+                                                    }
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>*@
+                                        </td>*@
                                     <td class="align-middle text-center">
                                         <span class="text-secondary text-xs font-weight-bold">@item.TIME</span>
                                     </td>
@@ -126,26 +137,11 @@
                                     <td>
                                         @if (item.NOTE.Length > 60)
                                         {
-                                            <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#ghichu_@item.ID"><span class="text-secondary text-xs font-weight-bold">@GetNote(item.NOTE)</span>  ...</a>
-                                            <div class="modal fade" id="ghichu_@item.ID" tabindex="-1" role="dialog" aria-labelledby="ghichu_@item.ID" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Ghi chú</h5>
-                                                            <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            @Html.Raw(Tudongxuongdong(item.NOTE))
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <a onclick="showNote(this)" id="@item.ID" href="javascript:;" data-bs-toggle="modal" data-bs-target="#ghichu"><span class="text-secondary text-xs font-weight-bold">@GetNote(item.NOTE)</span>  ...</a>
                                         }
                                         else
                                         {
-                                            <span class="text-secondary text-xs font-weight-bold">@item.NOTE</span>
+                                    <a onclick="showNote(this)" id="@item.ID" href="javascript:;" data-bs-toggle="modal" data-bs-target="#ghichu"><span class="text-secondary text-xs font-weight-bold">@item.NOTE</span></a>
                                         }
 
                                     </td>
@@ -162,7 +158,7 @@
                     </table>
                     <div style="text-align:center">
                         <div style="display:inline-block" id="listPaginationProduct">
-                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString,noteGhiChu = ViewBag.noteGhiChu,dateNote = ViewBag.dateNote,status = ViewBag.status,pageSize = ViewBag.pageSize }))
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString, noteGhiChu = ViewBag.noteGhiChu, dateNote = ViewBag.dateNote, status = ViewBag.status, pageSize = ViewBag.pageSize }))
                         </div>
                     </div>
                 </div>
@@ -172,13 +168,26 @@
 </div>
 @section jsFooter{
     <script>
-    function addClasslist() {
-        $('#listPaginationProduct ul li').each(function () {
-            $(this).addClass('page-item');
-            $(this).find('a').addClass('page-link')
+        $(document).ready(function () {
+            addClasslist();
         });
-    }
-    addClasslist();
-    </script>    
+        function showNote(element) {
+            var code = $(element).attr('id');
+            $.ajax({
+                url:'/Note/GetDetailNote/',
+                type: 'GET',
+                data: { code: code },
+                success: function (result) {
+                    $('#ghichu').find('.modal-body').html(result);
+                }
+            })
+        }
+        function addClasslist() {
+            $('#listPaginationProduct ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+    </script>
 }
 

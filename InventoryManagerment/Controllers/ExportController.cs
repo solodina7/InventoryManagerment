@@ -112,7 +112,7 @@ namespace InventoryManagerment.Controllers
         public void ChangeStatus(string code)
         {
             code = code.Substring(1, code.Length-1);
-            new DataAccess().ChangeStatus(code,"export");
+            new DataAccess().ChangeStatus(code,"export",GetUserName());
         }
         public void SetViewBag()
         {

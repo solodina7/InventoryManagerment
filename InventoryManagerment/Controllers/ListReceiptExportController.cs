@@ -12,16 +12,34 @@ namespace InventoryManagerment.Controllers
     public class ListReceiptExportController : BaseController
     {
         // GET: ListReceipt
-        public ActionResult Index(string searchString,DateTime? dateExport,int page =1,int pageSize =10)
+        public ActionResult Index(string searchString, string nameProduct, string staffName, string note, DateTime? dateExport, int status = 2, int page = 1, int pageSize = 10)
         {
-            ViewBag.Title = "Tuấn Hoan - Phiếu Xuất Của Nhân Viên " + new DataAccess().GetUser(GetUserName()).Name.ToUpper();
-            TempData[Common.CommonConstants.PAGE_NAME] = "Phiếu xuất của nhân viên " + new DataAccess().GetUser(GetUserName()).Name;
+            ViewBag.Title = "Tuấn Hoan - Danh Sách Phiếu Xuất";
+            TempData[Common.CommonConstants.PAGE_NAME] = "Danh sách phiếu xuất";
             ViewBag.searchString = searchString;
+            ViewBag.nameProduct = nameProduct;
+            ViewBag.staffName = staffName;
+            ViewBag.note = note;
+            ViewBag.status = status;
+            ViewBag.pageSize = pageSize;
+            bool? stt = null;
+            if (status == 1)
+            {
+                stt = true;
+            }
+            else if (status == 0)
+            {
+                stt = false;
+            }
+            else
+            {
+                stt = null;
+            }
             if (dateExport.HasValue)
             {
                 ViewBag.dateExport = dateExport.Value.ToString("yyyy-MM-dd");
             }
-            var model = new DataAccess().ListAllReceiptExportOnPagedlist(searchString, dateExport, GetUserName(), false, page, pageSize);
+            var model = new DataAccess().ListAllReceiptExportOnPagedlist(searchString, note, nameProduct, staffName, GetUserName(), dateExport, stt, page, pageSize);
             return View(model);
         }
         [HttpGet]
@@ -64,6 +82,11 @@ namespace InventoryManagerment.Controllers
             ViewBag.Unit = new DataAccess().ListAllUnitToViewBag();
             ViewBag.Product = new DataAccess().ListAllProductToViewBag();
             ViewBag.Customer = new DataAccess().ListtAllCustomerToViewBag();
+        }
+        public JsonResult GetDataExport(string code)
+        {
+            var listData = new DataAccess().GetDataExport(code);
+            return Json(listData, JsonRequestBehavior.AllowGet);
         }
     }
 }

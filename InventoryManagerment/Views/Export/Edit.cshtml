@@ -25,7 +25,7 @@
     }
     string GetDelivery(string name)
     {
-        if(name==null || name == "")
+        if (name == null || name == "")
         {
             return "";
         }
@@ -105,6 +105,22 @@
         return sb.ToString();
     }
 }
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="exampleModalLabel"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">person</i>Thông tin khách hàng</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="modalBody" class="modal-body">
+
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
     <div class="input-group input-group-static my-3">
@@ -112,23 +128,13 @@
         <input type="datetime-local" id="txtTime" name="txtTime" class="form-control" />
     </div>
     <div class="input-group input-group-static my-3 is-filled">
-        <label>Khách hàng</label>
-        <input id="txtCustomerName" type="text" class="form-control" placeholder="Nhập tên khách hàng" />
-        <span onclick="showInfo()" style="cursor:pointer;" class="input-group-text" id="basic-addon2"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#exampleModal"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">infor</i></a></span>
-        <!-- Modal -->
-        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title font-weight-normal" id="exampleModalLabel"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">person</i>Thông tin khách hàng</h5>
-                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div id="modalBody" class="modal-body">
-
-                    </div>
-                </div>
+        <div class="col-12">
+            <label>Khách hàng</label>
+            <div class="col">
+                <input id="txtCustomerName" type="text" class="form-control" placeholder="Nhập tên khách hàng" />
+            </div>
+            <div class="col-auto">
+                <span onclick="showInfo()" style="cursor:pointer;" class="input-group-text" id="basic-addon2"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#exampleModal"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">infor</i></a></span>
             </div>
         </div>
     </div>
@@ -221,7 +227,7 @@
     @Html.Raw(addProductModel())
     @Html.Raw(addListCustomer());
     @Html.Raw(addCustomerModel());
-<script>
+    <script>
         $(document).ready(function () {
             $("#btnAddProduct").click(function () {
                 AddProductRecord();
@@ -243,7 +249,7 @@
                     $('div.row:eq(0) div.input-group:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập tên khách hàng có trong dữ liệu</label><div>');
                     $('.tatsau1s').hide(3000, "linear");
                 }
-            });          
+            });
             $('#txtProductName').focusout(function () {
                 var text = $('#txtProductName').val();
                 var price = "0";
@@ -517,29 +523,15 @@
                 return;
             }
 
-            $.ajax({
-                async: true,
-                type: 'POST',
-                dataType: 'JSON',
-                contentType: 'application/json; charset=utf=8',
-                url: '/Export/Edit/',
-                data: JSON.stringify(listProduct),
-                success: function () {
-                    var obj = $.alert({
-                        title: 'Thông báo',
-                        content: 'Cập nhật phiếu xuất thành công',
-                    });
-                    setTimeout(function () {
-                        obj.close();
-                    }, 1500);
-                },
-                error: function () {
-                    $.alert({
-                        title: 'Thông báo',
-                        content: 'Lỗi',
-                    })
-                }
-            })
+            $.post('/Export/Edit/', { model: listProduct }, function () {
+                var obj = $.alert({
+                    title: 'Thông báo',
+                    content: 'Cập nhật phiếu xuất thành công',
+                });
+                setTimeout(function () {
+                    obj.close();
+                }, 1500);
+            });
     };
         function getCustomerName(code) {
         var name = "";
@@ -568,6 +560,6 @@
         });
         return key;
     };
-</script>
+    </script>
     @Html.Raw(addListProduct())
 }

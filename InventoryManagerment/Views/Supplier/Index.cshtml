@@ -6,7 +6,8 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var db = new InventoryDbContext();
-    int CountProduct(long id) {
+    int CountProduct(long id)
+    {
         var list = db.SupplyDetails.Where(x => x.SupplierID == id).ToList();
         return list.Count;
     }
@@ -17,7 +18,7 @@
     string getNameProduct(string code)
     {
         var product = db.Products.Where(x => x.Code == code).First();
-        if(product!= null)
+        if (product != null)
         {
             return product.Name;
         }
@@ -27,53 +28,31 @@
         }
     }
 }
-@section jsFooter{
-    <script>
-        $(document).ready(function () {
-            $('#tbl_supplier tbody tr td .delete').click(function () {
-                var id = $(this).attr('id');
-                $.confirm({
-                    title: 'Thông báo',
-                    content: 'Bạn có chắc muốn nhà cung cấp này ?',
-                    buttons: {
-                        confirm:
-                        {
-                            text: 'Đồng ý',
-                            action: function () {
-                                var row = '#row_' + id;
-                                $.ajax({
-                                    type: "POST",
-                                    url: "/Supplier/DeleteSupplier/",
-                                    data: JSON.stringify({ id: id }),
-                                    contentType: "application/json; charset=utf8",
-                                    success: function () {
-                                        $.alert('Xóa thành công');
-                                        $(row).remove();
-                                    },
-                                    error: function () {
-                                        $.alert('Xóa thất bại');
-                                    }
-                                });
-                            }
-                        },
-                        cancel: {
-                            text: 'Hủy',
-                            action: function () {
-                            }
-                        }
-                    }
-                });
-            });
-        });
-        function addClasslist() {
-            $('#listPagination ul li').each(function () {
-                $(this).addClass('page-item');
-                $(this).find('a').addClass('page-link')
-            });
-        }
-        addClasslist();
-    </script>
-}
+<!-- Modal -->
+<div class="modal fade" id="supplyDetail" tabindex="-1" role="dialog" aria-labelledby="titlemodal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="titlemodal">Sản phẩm cung cấp</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table id="tableSupply" class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá nhập</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card my-4">
@@ -140,49 +119,30 @@
                         <tbody>
                             @for (int i = 0; i < Model.Count; i++)
                             {
-                            <tr id="row_@Model[i].ID">
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@(i+1)</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@Model[i].Name</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <h6 class="mb-0 text-sm">@CountProduct(Model[i].ID)<a class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#supply_@Model[i].ID"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>      
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="supply_@Model[i].ID" tabindex="-1" role="dialog" aria-labelledby="titlemodal" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title font-weight-normal" id="titlemodal">Sản phẩm cung cấp</h5>
-                                                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    @foreach(var item in supplyDetails(Model[i].ID)) 
-                                                    {
-                                                        <p>Tên sản phẩm: @getNameProduct(item.ProductCode)</p>
-                                                    }
-                                                </div>
+                                <tr id="row_@Model[i].ID">
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@(i+1)</h6>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-center">
-                                    <a href="/Supplier/EditSupplier/@Model[i].ID"><i class="material-icons">edit_note</i></a>
-                                    <a href="/Supplier/Detail/@Model[i].ID"><i class="material-icons">info</i></a>
-                                    <a class="delete" href="javascript:;" id="@Model[i].ID"><i class="material-icons">delete</i></a>                                  
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">&nbsp;&nbsp;&nbsp;&nbsp;@Model[i].Name</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <h6 class="mb-0 text-sm">@CountProduct(Model[i].ID)<a onclick="showDetail(this)" id="@Model[i].ID" class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#supplyDetail"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a href="/Supplier/EditSupplier/@Model[i].ID"><i class="material-icons">edit_note</i></a>
+                                        <a href="/Supplier/Detail/@Model[i].ID"><i class="material-icons">info</i></a>
+                                        <a class="delete" href="javascript:;" id="@Model[i].ID"><i class="material-icons">delete</i></a>
+                                    </td>
+                                </tr>
                             }
                         </tbody>
                     </table>
@@ -196,3 +156,65 @@
         </div>
     </div>
 </div>
+@section jsFooter{
+    <script>
+        $(document).ready(function () {
+            $('#tbl_supplier tbody tr td .delete').click(function () {
+                var id = $(this).attr('id');
+                $.confirm({
+                    title: 'Thông báo',
+                    content: 'Bạn có chắc muốn nhà cung cấp này ?',
+                    buttons: {
+                        confirm:
+                        {
+                            text: 'Đồng ý',
+                            action: function () {
+                                var row = '#row_' + id;
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Supplier/DeleteSupplier/",
+                                    data: JSON.stringify({ id: id }),
+                                    contentType: "application/json; charset=utf8",
+                                    success: function () {
+                                        $.alert('Xóa thành công');
+                                        $(row).remove();
+                                    },
+                                    error: function () {
+                                        $.alert('Xóa thất bại');
+                                    }
+                                });
+                            }
+                        },
+                        cancel: {
+                            text: 'Hủy',
+                            action: function () {
+                            }
+                        }
+                    }
+                });
+            });
+            addClasslist();
+        });
+        function addClasslist() {
+            $('#listPagination ul li').each(function () {
+                $(this).addClass('page-item');
+                $(this).find('a').addClass('page-link')
+            });
+        }
+        function showDetail(element) {
+            var code = $(element).attr('id');
+            $.ajax({
+                url: '/Supplier/GetDetailSupplier/',
+                type: 'GET',
+                data: { code: code },
+                success: function (result) {
+                    $('#tableSupply').find('tbody').html('');
+                    result.forEach(element => {
+                        var row = '<tr><td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + element.NameProduct + '</span></td><td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + element.PriceProduct + ' / ' + element.UnitName + '</span></td></tr>';
+                        $('#tableSupply').find('tbody').append(row);
+                    });
+                }
+            })
+        }
+    </script>
+}

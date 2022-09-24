@@ -225,6 +225,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Loại sản phẩm</label>
                     <select id="txtCategoryID" class="form-control">
+                        <option value="0">Chọn loại sản phẩm</option>
                         @foreach (var item in db.ProductCategories.ToList())
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -239,7 +240,8 @@
 
                 <div class="input-group input-group-static my-3">
                     <label>Đơn vị tính</label>
-                    <select class="form-control" id="txtUnitProduct">
+                    <select class="form-control" id="txtUnitProduct">     
+                        <option value="0">Chọn đơn vị tính</option>
                         @foreach (var item in listUnit)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -250,6 +252,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Cách đóng gói</label>
                     <select class="form-control" id="txtPackageProduct">
+                        <option value="0">Chọn cách đóng gói</option>
                         @foreach (var item in db.Packages.ToList())
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -263,7 +266,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button id="btnSaveProduct" type="submit" data-bs-dismiss="modal" class="btn bg-gradient-primary">Lưu sản phẩm</button>
+                    <button id="btnSaveProduct" type="submit" class="btn bg-gradient-primary">Lưu sản phẩm</button>
                 </div>
             </div>
         </div>
@@ -330,8 +333,8 @@
                 }
             });
             $('#txtSupplier').focusout(function () {
-                if ($('#txtSupplier').val().trim().length > 0) {
-                    var nameSupplier = $('#txtSupplier').val().trim();
+                var nameSupplier = $('#txtSupplier').val().trim();
+                if (nameSupplier > 0) {
                     var count = 0;
                     listSupplier.forEach(item => {
                         if (item.Name == nameSupplier) {
@@ -473,6 +476,11 @@
             $('#txtProductName').focus();
             return;
         }
+        if (jQuery.inArray($('#txtProductName').val(), dataProduct) == -1) {
+                $.alert('Sản phẩm này không tồn tại');
+                $('#txtProductName').focus();
+                return;
+        }
         var code = $('#txtProductName').val();
         var productCode = CheckName(getNameProduct(code), listProduct);
         var price = $("#txtPrice").val();
@@ -598,6 +606,46 @@
             var packageName = $('#txtPackageProduct option:selected').text();
             var packageID = $('#txtPackageProduct option:selected').val();
             var quantityAlert = $('#txtAlertQuantity').val();
+
+            if (nameProduct.length == 0) {
+                $.alert('Vui lòng nhập tên sản phẩm');
+                $('#txtNameProduct').focus();
+                return;
+            }
+            if (categoryID == 0) {
+                $.alert('Vui lòng chọn loại sản phẩm');
+                $('##txtCategoryID').focus();
+                return;
+            }
+            if (priceProduct.length == 0) {
+                $.alert('Vui lòng nhập giá sản phẩm');
+                $('#txtPriceProduct').focus();
+                return;
+            }
+            if (unitID == 0) {
+                $.alert('Vui lòng chọn đơn vị tính');
+                $('#txtUnitProduct').focus();
+                return;
+            }
+            if (packageID == 0) {
+                $.alert('Vui lòng chọn cách đóng gói');
+                $('#txtPackageProduct').focus();
+                return;
+            }
+            if (quantityAlert.length == 0) {
+                $.alert('Vui lòng nhập số lượng tối thiểu');
+                $('#txtAlertQuantity').focus();
+                return;
+            }
+            if (!$.isNumeric(priceProduct)) {
+                $.alert('Vui lòng nhập giá là giá trị số');
+                return;
+            }
+            if (!$.isNumeric(quantityAlert)) {
+                $.alert('Vui lòng nhập số lượng tối thiểu là giá trị số');
+                return;
+            }
+
             var product = {};
             product.Code = code
             product.Name = nameProduct;
@@ -606,26 +654,15 @@
             product.UnitID = unitID;
             product.PackageID = packageID;
             product.QuantityAlert = quantityAlert;
-            $.ajax({
-                async: true,
-                type: 'POST',
-                dataType: 'JSON',
-                contentType: 'application/json; charset=utf=8',
-                url: '/Import/CreateProduct/',
-                data: JSON.stringify(product),
-                success: function () {
-                    $.alert("Thêm sản phẩm thành công");
-                    ClearState();
-                    AddModelProduct(nameProduct, code, 0, 0, unitID, packageID, listProduct);
-                    var tensanpham = categoryName.trim() + " | " + nameProduct.trim() + " | " + packageName.trim();
-                    AddAutocomplete(tensanpham.trim(), dataProduct);
-                    hideAlert();
-                    $('#txtProductName').val(tensanpham.trim());
-                    $('#txtProductName').focus();
-                },
-                error: function () {
-                    $.alert("Thêm sản phẩm thất bại");
-                }
+            $.post("/Import/CreateProduct/", { product: product }, function () {
+                $.alert("Thêm sản phẩm thành công");
+                ClearState();
+                AddModelProduct(nameProduct, code, 0, 0, unitID, packageID, listProduct);
+                var tensanpham = categoryName.trim() + " | " + nameProduct.trim() + " | " + packageName.trim();
+                AddAutocomplete(tensanpham.trim(), dataProduct);
+                hideAlert();
+                $('#txtProductName').val(tensanpham.trim());
+                $('#txtProductName').focus();
             });
         };
     </script>

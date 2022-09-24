@@ -27,5 +27,11 @@ namespace InventoryManagerment.Controllers
             var model = new DataAccess2().ListAllNotesToPagedList(searchString,noteGhiChu,dateNote,status, page, pageSize);
             return View(model);
         }
+        [HttpGet]
+        public JsonResult GetDetailNote(string code)
+        {
+            string note = new DataAccess2().GetNote(code);
+            return Json(note, JsonRequestBehavior.AllowGet);
+        }
     }
 }

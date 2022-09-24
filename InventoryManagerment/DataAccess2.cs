@@ -74,6 +74,12 @@ namespace InventoryManagerment
                          select ghichu;
             return result.ToPagedList(page, pageSize);
         }
+
+        public string GetNote(string code)
+        {
+            return db.NOTEs.Where(x => x.ID == code).FirstOrDefault().NOTE;
+        }
+
         public IEnumerable<BillViewModel> ListAllHoaDonToPagedList(string searchString, string nameProduct,string totalPrice,DateTime? dateBill, int page, int pageSize)
         {
             string date;

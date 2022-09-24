@@ -110,7 +110,7 @@
                     </table>
                     <div style="text-align:center">
                         <div id="listPagination" style="display:inline-block">
-                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString }))
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString, actionKey = ViewBag.actionKey, time = ViewBag.time }))
                         </div>
                     </div>
                 </div>
@@ -123,6 +123,7 @@
     <script>
         $(document).ready(function () {
             addClasslist();
+            setValue();
         });
         function addClasslist() {
             $('#listPagination ul li').each(function () {
@@ -130,7 +131,10 @@
                 $(this).find('a').addClass('page-link')
             });
         }
-        addClasslist();
+        function setValue() {
+            var type = '@ViewBag.actionKey';
+            $('#ActionKey option[value=' + type+']').attr('selected', 'selected');
+        }
     </script>
 } 
 

@@ -269,7 +269,7 @@ namespace InventoryManagerment
                 if (product.CategoryID != model.CategoryID)
                 {
                     product.CategoryID = model.CategoryID;
-                    action += $"| Cập nhật tên danh mục từ {GetProductCategory(product.CategoryID).Name} thành '{GetProductCategory(model.CategoryID)}'";
+                    action += $"| Cập nhật danh mục sản phẩm từ {GetProductCategory(product.CategoryID).Name} thành '{GetProductCategory(model.CategoryID)}'";
                 }
                 db.SaveChanges();
                 SetHistory("update", userName, "sản phẩm", action);
@@ -286,7 +286,7 @@ namespace InventoryManagerment
             {
                 var result = db.Products.Add(model);
                 db.SaveChanges();
-                SetHistory("insert", userName, "danh mục sản phẩm ", $"| Thêm tên sản phẩm '{model.Name}'");
+                SetHistory("insert", userName, " sản phẩm ", $"| Thêm tên sản phẩm '{model.Name}'");
                 return true;
             }
             catch
@@ -301,7 +301,7 @@ namespace InventoryManagerment
                 var product = db.Products.Find(id);
                 db.Products.Remove(product);
                 db.SaveChanges();
-                SetHistory("delete", userName, "Danh mục sản phẩm", $" | Xóa tên '{product.Name}'");
+                SetHistory("delete", userName, " sản phẩm", $" | Xóa tên '{product.Name}'");
                 return true;
             }
             catch
@@ -620,6 +620,28 @@ namespace InventoryManagerment
                 return false;
             }
         }
+        public List<SupplyDetailModel> GetDetailSupplier(long id)
+        {
+            try
+            {
+                var list = db.SupplyDetails.Where(x => x.SupplierID == id).ToList();
+                List<SupplyDetailModel> detail = new List<SupplyDetailModel>();
+                foreach (var item in list)
+                {
+                    var chitiet = new SupplyDetailModel();
+                    chitiet.NameProduct = db.Products.Where(x => x.Code == item.ProductCode).FirstOrDefault().Name;
+                    chitiet.PriceProduct = item.Price.ToString();
+                    chitiet.UnitName = db.Units.Find(item.UnitID).Name;
+                    detail.Add(chitiet);
+                }
+                return detail;
+            }
+            catch(Exception ex)
+            {
+                return new List<SupplyDetailModel>();
+            }
+
+        }
         //---------------------------------------------------------------------------------------------------------------------------------
         //Chức năng sản phẩm nhà cung cấp
         public bool CheckSupply(SupplyDetail model)
@@ -905,13 +927,11 @@ namespace InventoryManagerment
                              where import.Note.Contains(note) && product.Name.Contains(productName) && supplier.Name.Contains(searchString) && import.ImportDelete == status && import.Time.Year == dateImport.Value.Year && import.Time.Month== dateImport.Value.Month && import.Time.Day==dateImport.Value.Day                            
                              select new ImportViewModel()
                              {
-                                 ID = import.ID,
                                  Code = import.Code,
                                  NameSupplier = supplier.Name,
                                  Note = import.Note,
                                  Time = import.Time,
                                  ImportDelete = import.ImportDelete,
-                                 NameSupply = product.Code,
                              }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
@@ -924,13 +944,11 @@ namespace InventoryManagerment
                              where import.Note.Contains(note) && product.Name.Contains(productName) && supplier.Name.Contains(searchString) && import.ImportDelete == status
                              select new ImportViewModel()
                              {
-                                 ID = import.ID,
                                  Code = import.Code,
                                  NameSupplier = supplier.Name,
                                  Note = import.Note,
                                  Time = import.Time,
                                  ImportDelete = import.ImportDelete,
-                                 NameSupply = product.Code,
                              }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
@@ -1698,7 +1716,7 @@ namespace InventoryManagerment
                 return false;
             }
         }
-        public void ChangeStatus(string code,string type)
+        public void ChangeStatus(string code,string type,string userName)
         {
             switch (type)
             {
@@ -1707,10 +1725,12 @@ namespace InventoryManagerment
                     if(receipt.Status == true)
                     {
                         receipt.Status = false;
+                        SetHistoryRecepit("update",receipt.Code,userName,"Phiếu xuất","| Cập nhật trạng thái từ 'Đã duyệt' thành 'Chưa Duyệt' ");
                     }
                     else
                     {
                         receipt.Status = true;
+                        SetHistoryRecepit("update", receipt.Code, userName, "Phiếu xuất", "| Cập nhật trạng thái từ 'Chưa Duyệt' thành 'Đã Duyệt' ");
                     }
                     db.SaveChanges();
                     break;
@@ -1719,10 +1739,12 @@ namespace InventoryManagerment
                     if (refund.Status == true)
                     {
                         refund.Status = false;
+                        SetHistoryRecepit("update",refund.Code, userName,"Phiếu trả", "| Cập nhật trạng thái từ 'Đã duyệt' thành 'Chưa Duyệt' ");
                     }
                     else
                     {
                         refund.Status = true;
+                        SetHistoryRecepit("update", refund.Code, userName, "Phiếu trả", "| Cập nhật trạng thái từ 'Chưa duyệt' thành 'Đã Duyệt' ");
                     }
                     db.SaveChanges();
                     break;
@@ -2272,13 +2294,13 @@ namespace InventoryManagerment
             switch (actionKey)
             {
                 case "update":
-                    text += $"cập nhật '{objectName}' | {detail}";
+                    text += $"Cập nhật '{objectName}' | {detail}";
                     break;
                 case "insert":
-                    text += $"thêm mới '{objectName}' ";
+                    text += $"Thêm mới '{objectName}' ";
                     break;
                 case "delete":
-                    text += $"xóa '{objectName}' ";
+                    text += $"Xóa '{objectName}' ";
                     break;
             }
             text += $"với mã phiếu '{receiptCode}'";
@@ -2336,62 +2358,7 @@ namespace InventoryManagerment
         }
         //---------------------------------------------------------------------------------------------------------------------------------
         //Nhân viên
-        public IEnumerable<ExportViewModel> ListAllReceiptExportOnPagedlist(string searchString, DateTime? dateExport, string userName, bool status, int page, int pageSize)
-        {
-            if (string.IsNullOrEmpty(searchString))
-            {
-                searchString = "";
-            }
-            else
-            {
-                searchString = searchString.Trim();
-            }
-            if (dateExport.HasValue)
-            {
-                var result = (from export in db.Exports
-                             join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
-                             join supply in db.ExportDetails on export.Code equals supply.ExportCode
-                             join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on export.UserID equals users.ID
-                             where users.UserName == userName && export.Note.Contains(searchString) && customer.Name.Contains(searchString) && product.Name.Contains(searchString) && export.Time.Year == dateExport.Value.Year && export.Time.Month == dateExport.Value.Month && export.Time.Day == dateExport.Value.Day && export.ExportDelete == status
-                             select new ExportViewModel()
-                             {
-                                 Code = export.Code,
-                                 CustomerName = customer.Name,
-                                 Note = export.Note,
-                                 Time = export.Time,
-                                 Delivery = export.Delivery,
-                                 ExportDelete = export.ExportDelete,
-                                 NameUser = users.Name,
-                                 Status = export.Status
-                             }).Distinct();
-                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
-
-            }
-            else
-            {
-                var result = (from export in db.Exports
-                             join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
-                             join supply in db.ExportDetails on export.Code equals supply.ExportCode
-                             join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on export.UserID equals users.ID
-                             where users.UserName == userName && export.Note.Contains(searchString) && customer.Name.Contains(searchString) && product.Name.Contains(searchString) && export.ExportDelete == status
-                             select new ExportViewModel()
-                             {
-                                 Code = export.Code,
-                                 CustomerName = customer.Name,
-                                 Note = export.Note,
-                                 Time = export.Time,
-                                 Delivery = export.Delivery,
-                                 ExportDelete = export.ExportDelete,
-                                 NameUser = users.Name,
-                                 Status = export.Status
-                             }).Distinct();
-                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
-
-            }
-        }
-        public IEnumerable<RefundViewModel> ListAllReceiptRefundOnPagedlist(string searchString, DateTime? dateRefund, string userName, bool status, int page, int pageSize)
+        public IEnumerable<ExportViewModel> ListAllReceiptExportOnPagedlist(string searchString, string note, string nameProduct, string staffName, string userName, DateTime? dateExport, bool? statusExoport, int page, int pageSize)
         {
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -2401,45 +2368,227 @@ namespace InventoryManagerment
             {
                 searchString = "";
             }
-            if (dateRefund.HasValue)
+            if (!string.IsNullOrEmpty(note))
+            {
+                note = note.Trim();
+            }
+            else
+            {
+                note = "";
+            }
+            if (!string.IsNullOrEmpty(nameProduct))
+            {
+                nameProduct = nameProduct.Trim();
+            }
+            else
+            {
+                nameProduct = "";
+            }
+            if (!string.IsNullOrEmpty(staffName))
+            {
+                staffName = staffName.Trim();
+            }
+            else
+            {
+                staffName = "";
+            }
+            if (!string.IsNullOrEmpty(userName))
+            {
+                userName = userName.Trim();
+            }
+            else
+            {
+                userName = "";
+            }
+            if (dateExport.HasValue && statusExoport.HasValue)
+            {
+                var result = (from export in db.Exports
+                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
+                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on export.UserID equals users.ID
+                              where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.UserName==userName && product.Name.Contains(nameProduct) && export.Status == statusExoport.Value && export.Time.Year == dateExport.Value.Year && export.Time.Month == dateExport.Value.Month && export.Time.Day == dateExport.Value.Day && export.ExportDelete == false
+                              select new ExportViewModel()
+                              {
+                                  Code = export.Code,
+                                  CustomerName = customer.Name,
+                                  Note = export.Note,
+                                  Time = export.Time,
+                                  Delivery = export.Delivery,
+                                  ExportDelete = export.ExportDelete,
+                                  NameUser = users.Name,
+                                  Status = export.Status
+                              }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }
+            else if (!dateExport.HasValue && statusExoport.HasValue)
+            {
+                var result = (from export in db.Exports
+                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
+                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on export.UserID equals users.ID
+                              where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.UserName == userName && product.Name.Contains(nameProduct) && export.ExportDelete == false && export.Status == statusExoport.Value
+                              select new ExportViewModel()
+                              {
+                                  Code = export.Code,
+                                  CustomerName = customer.Name,
+                                  Note = export.Note,
+                                  Time = export.Time,
+                                  Delivery = export.Delivery,
+                                  ExportDelete = export.ExportDelete,
+                                  NameUser = users.Name,
+                                  Status = export.Status
+                              }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }
+            else if (dateExport.HasValue && !statusExoport.HasValue)
+            {
+                var result = (from export in db.Exports
+                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
+                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on export.UserID equals users.ID
+                              where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.UserName == userName && product.Name.Contains(nameProduct) && export.Time.Year == dateExport.Value.Year && export.Time.Month == dateExport.Value.Month && export.Time.Day == dateExport.Value.Day && export.ExportDelete == false
+                              select new ExportViewModel()
+                              {
+                                  Code = export.Code,
+                                  CustomerName = customer.Name,
+                                  Note = export.Note,
+                                  Time = export.Time,
+                                  Delivery = export.Delivery,
+                                  ExportDelete = export.ExportDelete,
+                                  NameUser = users.Name,
+                                  Status = export.Status
+                              }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }
+            else
+            {
+                var result = (from export in db.Exports
+                              join customer in db.Customers on export.CustomerCode equals customer.CustomerCode
+                              join supply in db.ExportDetails on export.Code equals supply.ExportCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on export.UserID equals users.ID
+                              where export.Note.Contains(note) && customer.Name.Contains(searchString) && export.Delivery.Contains(staffName) && users.UserName == userName && product.Name.Contains(nameProduct) && export.ExportDelete == false
+                              select new ExportViewModel()
+                              {
+                                  Code = export.Code,
+                                  CustomerName = customer.Name,
+                                  Note = export.Note,
+                                  Time = export.Time,
+                                  Delivery = export.Delivery,
+                                  ExportDelete = export.ExportDelete,
+                                  NameUser = users.Name,
+                                  Status = export.Status
+                              }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }      
+        }
+        public IEnumerable<RefundViewModel> ListAllReceiptRefundOnPagedlist(string searchString, string note, string nameProduct, string userName, bool? status, DateTime? dateRefund, int page, int pageSize)
+        {
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                searchString = searchString.Trim();
+            }
+            else
+            {
+                searchString = "";
+            }
+            if (!string.IsNullOrEmpty(note))
+            {
+                note = note.Trim();
+            }
+            else
+            {
+                note = "";
+            }
+            if (!string.IsNullOrEmpty(nameProduct))
+            {
+                nameProduct = nameProduct.Trim();
+            }
+            else
+            {
+                nameProduct = "";
+            }
+            if (status.HasValue && dateRefund.HasValue)
             {
                 var result = (from refund in db.Refunds
-                             join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
-                             join supply in db.RefundDetails on refund.Code equals supply.RefundCode
-                             join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on refund.UserID equals users.ID
-                             where refund.Note.Contains(searchString) && customer.Name.Contains(searchString) && users.Name.Contains(searchString) && product.Name.Contains(searchString) && refund.Time.Year == dateRefund.Value.Year && refund.Time.Month == dateRefund.Value.Month && refund.Time.Day == dateRefund.Value.Day && refund.RefundDelete == status && users.UserName == userName
-                             group new { refund, customer, supply, product, users } by new { refund.Code } into grp
-                             select new RefundViewModel()
-                             {
-                                 Code = grp.Key.Code,
-                                 CustomerName = grp.FirstOrDefault().customer.Name,
-                                 NameUser = grp.FirstOrDefault().users.Name,
-                                 Note = grp.FirstOrDefault().refund.Note,
-                                 Time = grp.FirstOrDefault().refund.Time,
-                                 RefundDelete = grp.FirstOrDefault().refund.RefundDelete,
-                                 Status = grp.FirstOrDefault().refund.Status,
-                             }).Distinct();
+                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
+                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on refund.UserID equals users.ID
+                              where refund.Note.Contains(note) && refund.Status == status && customer.Name.Contains(searchString) && users.UserName == userName && product.Name.Contains(nameProduct) && refund.Time.Year == dateRefund.Value.Year && refund.Time.Month == dateRefund.Value.Month && refund.Time.Day == dateRefund.Value.Day && refund.RefundDelete == false
+                              select new RefundViewModel()
+                              {
+                                  Code = refund.Code,
+                                  CustomerName = customer.Name,
+                                  NameUser = users.Name,
+                                  Note = refund.Note,
+                                  Time = refund.Time,
+                                  RefundDelete = refund.RefundDelete,
+                                  Status = refund.Status,
+                              }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }
+            else if (status.HasValue && !dateRefund.HasValue)
+            {
+                var result = (from refund in db.Refunds
+                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
+                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on refund.UserID equals users.ID
+                              where refund.Note.Contains(note) && customer.Name.Contains(searchString) && users.UserName == userName && product.Name.Contains(nameProduct) && refund.RefundDelete == false && refund.Status == status
+                              select new RefundViewModel()
+                              {
+                                  Code = refund.Code,
+                                  CustomerName = customer.Name,
+                                  NameUser = users.Name,
+                                  Note = refund.Note,
+                                  Time = refund.Time,
+                                  RefundDelete = refund.RefundDelete,
+                                  Status = refund.Status,
+                              }).Distinct();
+                return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
+            }
+            else if (!status.HasValue && dateRefund.HasValue)
+            {
+                var result = (from refund in db.Refunds
+                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
+                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on refund.UserID equals users.ID
+                              where refund.Note.Contains(note) && customer.Name.Contains(searchString) && users.UserName == userName && product.Name.Contains(nameProduct) && refund.Time.Year == dateRefund.Value.Year && refund.Time.Month == dateRefund.Value.Month && refund.Time.Day == dateRefund.Value.Day && refund.RefundDelete == false
+                              select new RefundViewModel()
+                              {
+                                  Code = refund.Code,
+                                  CustomerName = customer.Name,
+                                  NameUser = users.Name,
+                                  Note = refund.Note,
+                                  Time = refund.Time,
+                                  RefundDelete = refund.RefundDelete,
+                                  Status = refund.Status,
+                              }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
             else
             {
                 var result = (from refund in db.Refunds
-                             join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
-                             join supply in db.RefundDetails on refund.Code equals supply.RefundCode
-                             join product in db.Products on supply.ProductCode equals product.Code
-                             join users in db.Users on refund.UserID equals users.ID
-                             where refund.Note.Contains(searchString) && customer.Name.Contains(searchString) && users.Name.Contains(searchString) & product.Name.Contains(searchString) && refund.RefundDelete == status && users.UserName == userName                   
-                             select new RefundViewModel()
-                             {
-                                 Code = refund.Code,
-                                 CustomerName = customer.Name,
-                                 NameUser = users.Name,
-                                 Note = refund.Note,
-                                 Time = refund.Time,
-                                 RefundDelete = refund.RefundDelete,
-                                 Status = refund.Status,
-                             }).Distinct();
+                              join customer in db.Customers on refund.CustomerCode equals customer.CustomerCode
+                              join supply in db.RefundDetails on refund.Code equals supply.RefundCode
+                              join product in db.Products on supply.ProductCode equals product.Code
+                              join users in db.Users on refund.UserID equals users.ID
+                              where refund.Note.Contains(note) && customer.Name.Contains(searchString) && users.UserName == userName && product.Name.Contains(nameProduct) && refund.RefundDelete == false
+                              select new RefundViewModel()
+                              {
+                                  Code = refund.Code,
+                                  CustomerName = customer.Name,
+                                  NameUser = users.Name,
+                                  Note = refund.Note,
+                                  Time = refund.Time,
+                                  RefundDelete = refund.RefundDelete,
+                                  Status = refund.Status,
+                              }).Distinct();
                 return result.OrderByDescending(x => x.Time).ToPagedList(page, pageSize);
             }
         }

@@ -4,26 +4,13 @@
 @model IPagedList<InventoryManagerment.ViewModel.RefundViewModel>
 
 @{
-    //Export Refund
+    //Indedx Refund STAFF
     Layout = "~/Views/Shared/_Layout.cshtml";
     var db = new InventoryDbContext();
     long GetProductQuantity(string Code)
     {
         var list = db.RefundDetails.Where(x => x.RefundCode == Code).ToList();
         return list.Count;
-    }
-    List<RefundDetail> GetListProduct(string Code)
-    {
-        return db.RefundDetails.Where(x => x.RefundCode == Code && x.RefundDetailDelete == false).ToList();
-    }
-    string GetNameProduct(string Code)
-    {
-        Product product = db.Products.Where(x => x.Code == Code).FirstOrDefault();
-        return product.Name;
-    }
-    string GetNameUnit(long id)
-    {
-        return db.Units.Find(id).Name;
     }
     string GetProductPrice(string Code)
     {
@@ -73,6 +60,39 @@
         return db.Refunds.Where(x => x.Code == code).FirstOrDefault().ID;
     }
 }
+<!-- Modal -->
+<div class="modal fade" id="refundDetail" tabindex="-1" role="dialog" aria-labelledby="ImportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="ImportModalLabel">Chi tiết sản phẩm</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-start">Ngày trả:<p>...</p></h6>
+                <h6 class="text-start">Tên khách hàng: <p>...</p></h6>
+                <h6 class="text-start">Nhân viên lập: <p>...</p></h6>
+                <h6 class="text-start">Ghi chú: <p>...</p></h6>
+                <h6 class="text-start">Danh sách sản phẩm</h6>
+                <table id="tableInvoice" class="table align-items - center mb - 0">
+                    <thead>
+                        <tr>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Giá đơn vị</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <blockquote id="totalPrice" class="blockquote text-center"><p class="h6 text-start">&nbsp;Tổng tiền: <span>...</span></p></blockquote>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card my-4">
@@ -83,7 +103,7 @@
                     </div>
                     <div class="col-6 text-end">
                         <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="material-icons">search</i></a>
-                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize ps-3" href="/Refund/Create"><i class="material-icons text-sm">add</i>&nbsp;&nbsp;Thêm phiếu trả</a>
+                        <a class="btn bg-gradient-dark mb-0 text-white text-capitalize" href="/Refund/Create"><i class="material-icons text-sm">add</i></a>
                     </div>
                 </div>
             </div>
@@ -102,23 +122,33 @@
                                 <div class="modal-body">
                                     @using (Html.BeginForm("Index", "ListReceiptRefund", method: FormMethod.Get))
                                     {
-                                        <div class="input-group mb-3">
-                                            <div class="input-group input-group-static mb-4">
-                                                <input placeholder="Nhập tên khách hàng, ghi chú, tên sản phẩm, tên người lập, tên người giao" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.searchString" name="searchString">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateRefund" id="dateRefund" name="dateRefund">
-                                            </div>
-                                            <div class="input-group input-group-static mb-4">
-                                                <select name="pageSize" class="form-control">
-                                                    <option value="10">Số dòng hiển thị</option>
-                                                    @for (int a = 15; a <= 100; a += 5)
-                                                    {
-                                                        <option value="@a">@a</option>
-                                                    }
-                                                </select>
-                                            </div>
+                                    <div class="input-group mb-3">
+                                        <div class="input-group input-group-static mb-4">
+                                            <textarea placeholder="Nhập ghi chú" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" name="note">@ViewBag.note</textarea>
                                         </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <input placeholder="Nhập tên sản phẩm" type="text" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.nameProduct" name="nameProduct">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <input type="date" class="form-control" onfocus="focused(this)" onfocusout="defocused(this)" value="@ViewBag.dateRefund" id="dateRefund" name="dateRefund">
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <select id="status" name="status" class="form-control">
+                                                <option value="2">Tất cả</option>
+                                                <option value="1">Đã duyệt</option>
+                                                <option value="0">Chưa duyệt</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group input-group-static mb-4">
+                                            <select id="pageSize" name="pageSize" class="form-control">
+                                                <option value="10">Số dòng hiển thị</option>
+                                                @for (int a = 15; a <= 100; a += 5)
+                                                {
+                                                    <option value="@a">@a</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
                                         <button id="btnSearch" type="submit" class="btn btn-icon btn-3 btn-outline-primary input-group-outline input-group-text">
                                             <span class="btn-inner--icon"><i class="material-icons">search</i></span>
                                             <span class="btn-inner--text">Tìm kiếm</span>
@@ -166,51 +196,7 @@
                                         <h6 class="mb-0 text-sm">@item.NameUser</h6>
                                     </td>
                                     <td class="align-middle text-center">
-                                        <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#import_@item.Code"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
-                                        <!-- Modal -->
-                                        <div class="modal fade" id="import_@item.Code" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Chi tiết sản phẩm</h5>
-                                                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <table class="table align-items-center mb-0" id="tbl_Product">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Tên sản phẩm</th>
-                                                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đơn giá</th>
-                                                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Số lượng</th>
-                                                                    <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thành tiền</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @foreach (var items in GetListProduct(item.Code))
-                                                                {
-                                                                    <tr>
-                                                                        <td class="align-middle text-center">
-                                                                            <span class="text-secondary text-xs font-weight-bold">@GetNameProduct(items.ProductCode)</span>
-                                                                        </td>
-                                                                        <td class="align-middle text-center">
-                                                                            <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney(items.Price.ToString()) VNĐ</span>
-                                                                        </td>
-                                                                        <td class="align-middle text-center">
-                                                                            <span class="text-secondary text-xs font-weight-bold">@items.Quantity @GetNameUnit(items.UnitID)</span>
-                                                                        </td>
-                                                                        <td class="align-middle text-center">
-                                                                            <span class="text-secondary text-xs font-weight-bold">@InventoryManagerment.Common.Functions.NumberToMoney((items.Quantity * items.Price).ToString())</span>
-                                                                        </td>
-                                                                    </tr>
-                                                                }
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <h6 class="mb-0 text-sm">@GetProductQuantity(item.Code) <a id="@item.Code" onclick="showDetail(this)" class="btn btn-link text-dark px-3 mb-0" href="javascript:;" data-bs-toggle="modal" data-bs-target="#refundDetail"><i class="material-icons text-sm me-2">visibility</i>XEM</a></h6>
                                     </td>
                                     <td class="align-middle text-center">
                                         <h6 class="mb-0 text-sm">@GetProductPrice(item.Code)</h6>
@@ -247,7 +233,7 @@
                     </table>
                     <div style="text-align:center">
                         <div id="listPagination" style="display:inline-block">
-                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString, dateExport = ViewBag.dateExport, pageSize = ViewBag.pageSize }))
+                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.searchString, note = ViewBag.note, nameProduct = ViewBag.nameProduct, nameStaff = ViewBag.nameStaff, status = ViewBag.status, pageSize = ViewBag.pageSize }))
                         </div>
                     </div>
                 </div>
@@ -299,6 +285,7 @@
                     }
                 });
             });
+            addClasslist();
         });
         function addClasslist() {
             $('#listPagination ul li').each(function () {
@@ -306,7 +293,45 @@
                 $(this).find('a').addClass('page-link')
             });
         }
-        addClasslist();
+        function showDetail(element) {
+            var code = $(element).attr('id');
+            $('#tableInvoice').find('tbody').html("");
+            $.ajax({
+                url: '/Refund/GetDataRefund/',
+                type: 'GET',
+                data: { code: code },
+                success: function (result) {
+                    result.forEach(item => {
+                        var htmlDetail = '<tr><td class="align-middle text-center"> <span class="text-secondary text-xs font-weight-bold">' + item.ProductName + '</span></td>"'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + item.Quantity + '' + item.UnitName + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber(item.Price, '.', ',') + '</span></td>'
+                            + '<td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">' + formatNumber((item.Price * item.Quantity), '.', ',') + '</span></td></tr>';
+                        $('#tableInvoice').find('tbody').append(htmlDetail);
+                    });
+                    $('#refundDetail h6:eq(0)').find('p').html(result[0].Time);
+                    $('#refundDetail h6:eq(1)').find('p').html(result[0].CustomerName);
+                    $('#refundDetail h6:eq(2)').find('p').html(result[0].Staff);
+                    if (result[0].Note.trim().length == 0) {
+                        $('#refundDetail h6:eq(3)').find('p').html('Không có ghi chú');
+                    }
+                    else {
+                        $('#refundDetail h6:eq(3)').find('p').html(result[0].Note);
+                    }
+                    $('#totalPrice p').find('span').html(formatNumber(result[0].Total, '.', ',') + ' VNĐ');
+                }
+            });
+        }
+        function formatNumber(nStr, decSeperate, groupSeperate) {
+            nStr += '';
+            x = nStr.split(decSeperate);
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + groupSeperate + '$2');
+            }
+            return x1 + x2;
+        }
 
     </script>
 }

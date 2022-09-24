@@ -184,6 +184,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Loại sản phẩm</label>
                     <select id="txtCategoryID" class="form-control">
+                        <option value="0">Chọn loại sản phẩm</option>
                         @foreach (var item in listCategory)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -199,6 +200,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Đơn vị tính</label>
                     <select class="form-control" id="txtUnitProduct">
+                        <option value="0">Chọn đơn vị tính</option>
                         @foreach (var item in listUnit)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -209,6 +211,7 @@
                 <div class="input-group input-group-static my-3">
                     <label>Cách đóng gói</label>
                     <select class="form-control" id="txtPackageProduct">
+                        <option value="0">Chọn cách đóng gói</option>
                         @foreach (var item in listPackage)
                         {
                             <option value="@item.ID">@item.Name</option>
@@ -220,9 +223,10 @@
                     <label>Số lượng tối thiểu</label>
                     <input class="form-control" id="txtAlertQuantity" />
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button id="btnSaveProduct" type="submit" data-bs-dismiss="modal" class="btn bg-gradient-primary">Lưu sản phẩm</button>
+                    <button id="btnSaveProduct" type="submit" class="btn bg-gradient-primary">Lưu sản phẩm</button>
                 </div>
             </div>
         </div>
@@ -309,14 +313,14 @@
                         }
                         else if (jQuery.inArray(text, dataProduct) == -1) {
                             hideAlert($('#txtSupplier'));
-                            $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này bạn có muốn thêm mới không ? <a onclick="setName()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert(document.getElementById("txtProductName"))">X</a></label><div>');
+                            $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này bạn có muốn thêm mới không ? <a onclick="setName()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert()">X</a></label><div>');
                         }
                     });
                     $('#txtSupplier').focusout(function () {
                         if ($('#txtSupplier').val().trim().length > 0) {
                             var nameSupplier = $('#txtSupplier').val().trim();
                             if (jQuery.inArray(nameSupplier, dataSupplier) == -1) {
-                                hideAlert($('#txtSupplier'));
+                                hideAlert();
                                 $('div.container-fluid div.row:eq(0) div.input-group:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có nhà cung cấp này bạn có muốn thêm mới không ? <a onclick="setNameSupplier()" href="javascript:;" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#supplierModal">Thêm mới</a>  <a class="btn btn-primary btn-sm" href="javascript:;" onclick ="hideAlert($(\'#txtSupplier\'))">X</a></label><div>')
                             }
                         }
@@ -332,7 +336,7 @@
         }
         function hideAlert(element) {
             $('.tatsau1s').hide(1000, "linear");
-            if (element == null) {
+            if (element != null) {
                 element.val("");
             }            
         }
@@ -432,6 +436,11 @@
             });
             if (temp > 0) {
                 $.alert('Sản phẩm này đã tồn tại vui lòng kiểm tra lại');
+                $('#txtProductName').focus();
+                return;
+            }
+            if (jQuery.inArray($('#txtProductName').val(), dataProduct) == -1) {
+                $.alert('Sản phẩm này không tồn tại');
                 $('#txtProductName').focus();
                 return;
             }
@@ -574,6 +583,46 @@
             var packageName = $('#txtPackageProduct option:selected').text();
             var packageID = $('#txtPackageProduct option:selected').val();
             var quantityAlert = $('#txtAlertQuantity').val();
+
+            if (nameProduct.length == 0) {
+                $.alert('Vui lòng nhập tên sản phẩm');
+                $('#txtNameProduct').focus();
+                return;
+            }
+            if (categoryID == 0) {
+                $.alert('Vui lòng chọn loại sản phẩm');
+                $('##txtCategoryID').focus();
+                return;
+            }
+            if (priceProduct.length == 0) {
+                $.alert('Vui lòng nhập giá sản phẩm');
+                $('#txtPriceProduct').focus();
+                return;
+            }
+            if (unitID == 0) {
+                $.alert('Vui lòng chọn đơn vị tính');
+                $('#txtUnitProduct').focus();
+                return;
+            }
+            if (packageID == 0) {
+                $.alert('Vui lòng chọn cách đóng gói');
+                $('#txtPackageProduct').focus();
+                return;
+            }
+            if (quantityAlert.length == 0) {
+                $.alert('Vui lòng nhập số lượng tối thiểu');
+                $('#txtAlertQuantity').focus();
+                return;
+            }
+            if (!$.isNumeric(priceProduct)) {
+                $.alert('Vui lòng nhập giá là giá trị số');
+                return;
+            }
+            if (!$.isNumeric(quantityAlert)) {
+                $.alert('Vui lòng nhập số lượng tối thiểu là giá trị số');
+                return;
+            }
+
             var product = {};
             product.Code = code
             product.Name = nameProduct;
@@ -582,26 +631,15 @@
             product.UnitID = unitID;
             product.PackageID = packageID;
             product.QuantityAlert = quantityAlert;
-            $.ajax({
-                async: true,
-                type: 'POST',
-                dataType: 'JSON',
-                contentType: 'application/json; charset=utf=8',
-                url: '/Import/CreateProduct/',
-                data: JSON.stringify(product),
-                success: function () {
-                    $.alert("Thêm sản phẩm thành công");
-                    ClearState();
-                    AddModelProduct(nameProduct, code, 0, 0, unitID, packageID, listProduct);
-                    var tensanpham = categoryName.trim() + " | " + nameProduct.trim() + " | " + packageName.trim();
-                    AddAutocomplete(tensanpham.trim(), dataProduct);
-                    hideAlert();
-                    $('#txtProductName').val(tensanpham.trim());
-                    $('#txtProductName').focus();
-                },
-                error: function () {
-                    $.alert("Thêm sản phẩm thất bại");
-                }
+            $.post("/Import/CreateProduct/", { product: product }, function () {
+                $.alert("Thêm sản phẩm thành công");
+                ClearState();
+                AddModelProduct(nameProduct, code, 0, 0, unitID, packageID, listProduct);
+                var tensanpham = categoryName.trim() + " | " + nameProduct.trim() + " | " + packageName.trim();
+                AddAutocomplete(tensanpham.trim(), dataProduct);
+                hideAlert();
+                $('#txtProductName').val(tensanpham.trim());
+                $('#txtProductName').focus();
             });
         }
         function addSupplierModel(name,code,listSupplier,dataSupplier) {

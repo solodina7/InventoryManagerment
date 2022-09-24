@@ -6,9 +6,9 @@
 @{
     //Import Index
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new InventoryDbContext();
     string GetProductPrice(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.ImportDetails.Where(x => x.ImportCode == Code).ToList();
         decimal sum = 0;
         foreach (var item in list)
@@ -19,7 +19,6 @@
     }
     long GetProductQuantity(string Code)
     {
-        var db = new InventoryDbContext();
         var list = db.ImportDetails.Where(x => x.ImportCode == Code).ToList();
         return list.Count;
     }
@@ -47,6 +46,10 @@
             return note;
         }
 
+    }
+    long GetID(string code)
+    {
+        return db.Imports.Where(x => x.Code == code).FirstOrDefault().ID;
     }
 }
 <!-- Modal -->
@@ -160,7 +163,7 @@
                             @{int i = 1; }
                             @foreach (var item in Model)
                             {
-                                <tr id="row_@item.ID">
+                                <tr id="row_@GetID(item.Code)">
                                     <td>
                                         <div class="d-flex px-2 py-1">
                                             <div class="d-flex flex-column justify-content-center">
@@ -184,8 +187,8 @@
                                         <h6 class="mb-0 text-sm">@GetNote(item.Note)</h6>
                                     </td>
                                     <td class="align-middle text-center">
-                                        <a href="/Import/Edit/@item.ID"><i class="material-icons">edit_note</i></a>
-                                        <a class="delete" href="#" id="@item.ID"><i class="material-icons">delete</i></a>
+                                        <a href="/Import/Edit/@GetID(item.Code)"><i class="material-icons">edit_note</i></a>
+                                        <a class="delete" href="#" id="@GetID(item.Code)"><i class="material-icons">delete</i></a>
                                     </td>
                                 </tr>
                                 i++;

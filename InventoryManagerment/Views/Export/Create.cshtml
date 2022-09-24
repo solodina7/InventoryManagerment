@@ -67,7 +67,7 @@
         System.Text.StringBuilder sb = new System.Text.StringBuilder();
         sb.Append("<script>");
         sb.Append("var listCustomer = new Array();");
-        foreach(var item in listCustomer)
+        foreach (var item in listCustomer)
         {
             sb.Append(" var ModelCustomer = {};");
             sb.Append($" ModelCustomer.Name = '{item.Name}';");
@@ -80,6 +80,22 @@
         return sb.ToString();
     }
 }
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-normal" id="exampleModalLabel"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">person</i>Thông tin khách hàng</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="modalBody" class="modal-body">
+
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <h6>@TempData[InventoryManagerment.Common.CommonConstants.PAGE_NAME]</h6>
     <div class="input-group input-group-static my-3 is-filled">
@@ -89,25 +105,15 @@
     @if (user.RoleID == 1)
     {
         <div class="input-group input-group-static my-3 is-filled">
-            <label>Khách hàng</label>
-            <input id="txtCustomerName" type="text" class="form-control" placeholder="Nhập tên khách hàng" />
-            <span onclick="showInfo()" style="cursor:pointer;" class="input-group-text" id="basic-addon2"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#exampleModal"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">infor</i></a></span>
-            <!-- Modal -->
-            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title font-weight-normal" id="exampleModalLabel"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">person</i>Thông tin khách hàng</h5>
-                            <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div id="modalBody" class="modal-body">
-                            
-                        </div>
-                    </div>
+            <div class="col-12">
+                <label>Khách hàng</label>
+                <div class="col">
+                    <input id="txtCustomerName" type="text" class="form-control" placeholder="Nhập tên khách hàng" />
                 </div>
-            </div>  
+                <div class="col-auto">
+                    <span onclick="showInfo()" style="cursor:pointer;" class="input-group-text" id="basic-addon2"><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#exampleModal"><i title="tooltip" id="btnShowInfo" class="material-icons opacity-10">infor</i></a></span>
+                </div>
+            </div>
         </div>
     }
     else
@@ -190,105 +196,105 @@
     <script>
         //Export
         $(document).ready(function () {
-                $("#btnAddProduct").click(function () {
-                    AddProductRecord();
-                });
-                $("#btnSave").click(function () {
-                    SaveProduct();
-                });
-                SetTime();
-                AutoComplete(dataProduct, $('#txtProductName'));
-                AutoComplete(dataCustomer, $('#txtCustomerName'));
-                $('#txtProductName').focusout(function () {
-                    var text = $('#txtProductName').val();
-                    var price = "0";
-                    var unitid = "null";
-                    var currentquantity = "0";
-                    if (jQuery.inArray(text, dataProduct) != -1 || text == "") {
-                        $('#txtProductName').val(text);
-                        if ($('#txtPrice').val() == "" || $('#txtPrice').val() != "") {
-                            var code = CheckName(getNameProduct(text), listProduct);
-                            listProduct.forEach(element => {
-                                if (element.CodeProduct == code) {
-                                    price = element.Price;
-                                    unitid = element.UnitID;
-                                }
-                            });
-                            $('#txtPrice').val(formatNumber(price, '.', ','))
-                        }
-                        if ($('#txtQuantity').val() != "") {
-                            quantity = $('#txtQuantity').val();
-                            listProduct.forEach(item => {
-                                if (item.Name == CheckName(getNameProduct(text), listProduct)) {
-                                    currentquantity = item.Quantity;
-                                }
-                            });
-                            if (parseInt(quantity) > parseInt(currentquantity)) {
-                                if (parseInt(currentquantity) == 0) {
-                                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này đã hết trong kho</label><div>');
-                                    $('.tatsau1s').hide(3000, "linear");
-                                    $('#txtQuantity').val("");
-                                }
-                                else {
-                                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này chỉ còn ' + currentquantity + ' </label><div>');
-                                    $('.tatsau1s').hide(3000, "linear");
-                                    $('#txtQuantity').val(currentquantity);
-                                }
+            $("#btnAddProduct").click(function () {
+                AddProductRecord();
+            });
+            $("#btnSave").click(function () {
+                SaveProduct();
+            });
+            SetTime();
+            AutoComplete(dataProduct, $('#txtProductName'));
+            AutoComplete(dataCustomer, $('#txtCustomerName'));
+            $('#txtProductName').focusout(function () {
+                var text = $('#txtProductName').val();
+                var price = "0";
+                var unitid = "null";
+                var currentquantity = "0";
+                if (jQuery.inArray(text, dataProduct) != -1 || text == "") {
+                    $('#txtProductName').val(text);
+                    if ($('#txtPrice').val() == "" || $('#txtPrice').val() != "") {
+                        var code = CheckName(getNameProduct(text), listProduct);
+                        listProduct.forEach(element => {
+                            if (element.CodeProduct == code) {
+                                price = element.Price;
+                                unitid = element.UnitID;
+                            }
+                        });
+                        $('#txtPrice').val(formatNumber(price, '.', ','))
+                    }
+                    if ($('#txtQuantity').val() != "") {
+                        quantity = $('#txtQuantity').val();
+                        listProduct.forEach(item => {
+                            if (item.Name == CheckName(getNameProduct(text), listProduct)) {
+                                currentquantity = item.Quantity;
+                            }
+                        });
+                        if (parseInt(quantity) > parseInt(currentquantity)) {
+                            if (parseInt(currentquantity) == 0) {
+                                $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này đã hết trong kho</label><div>');
+                                $('.tatsau1s').hide(3000, "linear");
+                                $('#txtQuantity').val("");
+                            }
+                            else {
+                                $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này chỉ còn ' + currentquantity + ' </label><div>');
+                                $('.tatsau1s').hide(3000, "linear");
+                                $('#txtQuantity').val(currentquantity);
                             }
                         }
-                        $('#txtUnit').val(unitid);
-                        $('#txtQuantity').focus();
                     }
-                    else if (jQuery.inArray(text, dataProduct) == -1) {
-                        $('#txtProductName').val("");
-                        $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này vui lòng thử lại</label><div>');
-                        $('.tatsau1s').hide(3000, "linear");
+                    $('#txtUnit').val(unitid);
+                    $('#txtQuantity').focus();
+                }
+                else if (jQuery.inArray(text, dataProduct) == -1) {
+                    $('#txtProductName').val("");
+                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Không có tên sản phẩm này vui lòng thử lại</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+            $('#txtQuantity').focusout(function () {
+                var quantity = $('#txtQuantity').val();
+                var nameproduct = $('#txtProductName').val();
+                var productcode = CheckName(getNameProduct(nameproduct), listProduct);
+                var currentquantity = "";
+                listProduct.forEach(item => {
+                    if (item.CodeProduct == productcode) {
+                        currentquantity = item.Quantity;
                     }
                 });
-                $('#txtQuantity').focusout(function () {
-                    var quantity = $('#txtQuantity').val();
-                    var nameproduct = $('#txtProductName').val();
-                    var productcode = CheckName(getNameProduct(nameproduct), listProduct);
-                    var currentquantity = "";
-                    listProduct.forEach(item => {
-                        if (item.CodeProduct == productcode) {
-                            currentquantity = item.Quantity;
-                        }
-                    });
-                    if (parseInt(quantity) > parseInt(currentquantity)) {
-                        if (currentquantity == 0) {
-                            $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này đã hết trong kho</label><div>');
-                            $('.tatsau1s').hide(3000, "linear");
-                            $('#txtQuantity').val("");
-                        }
-                        else {
-                            $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này chỉ còn ' + currentquantity + ' </label><div>');
-                            $('.tatsau1s').hide(3000, "linear");
-                            $('#txtQuantity').val(currentquantity);
-                        }
+                if (parseInt(quantity) > parseInt(currentquantity)) {
+                    if (currentquantity == 0) {
+                        $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này đã hết trong kho</label><div>');
+                        $('.tatsau1s').hide(3000, "linear");
+                        $('#txtQuantity').val("");
                     }
                     else {
-
-                    }
-                });
-                $('#txtPrice').focusout(function () {
-                    var text = $('#txtPrice').val();
-                    if ($.isNumeric(text) || text.indexOf(',') != -1 || text == '') {
-                        $('#txtPrice').val(formatNumber(text, '.', ','));
-                    }
-                    else if (!$.isNumeric(text)) {
-                        $('#txtPrice').val("");
-                        $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập số</label><div>');
+                        $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i>Sản phẩm này chỉ còn ' + currentquantity + ' </label><div>');
                         $('.tatsau1s').hide(3000, "linear");
+                        $('#txtQuantity').val(currentquantity);
                     }
-                });
+                }
+                else {
+
+                }
             });
+            $('#txtPrice').focusout(function () {
+                var text = $('#txtPrice').val();
+                if ($.isNumeric(text) || text.indexOf(',') != -1 || text == '') {
+                    $('#txtPrice').val(formatNumber(text, '.', ','));
+                }
+                else if (!$.isNumeric(text)) {
+                    $('#txtPrice').val("");
+                    $('div.container-fluid div.row:eq(1)').after('<div class="tatsau1s"><label><i class="material-icons text-sm">error</i> Vui lòng nhập số</label><div>');
+                    $('.tatsau1s').hide(3000, "linear");
+                }
+            });
+        });
         function showInfo() {
             var customerName = $("#txtCustomerName").val();
             var Name = "";
             var Phone = "";
             var Address = "";
-            var count=0;
+            var count = 0;
             listCustomer.forEach(element => {
                 if (element.Name == customerName) {
                     Name = element.Name;
@@ -330,17 +336,17 @@
                         currentquantity = item.Quantity;
                     }
                 });
-                if (parseInt(quantity) > parseInt(currentquantity)){
+                if (parseInt(quantity) > parseInt(currentquantity)) {
                     $.alert('Sản phẩm này chỉ còn ' + currentquantity + '');
                     $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').val(currentquantity);
                     return;
                 }
-                if (!$.isNumeric(price.replace(',',''))) {
+                if (!$.isNumeric(price.replace(',', ''))) {
                     $.alert("Vui lòng nhập số")
                     $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').focus();
                     return;
                 }
-                var total = price.replace(',','') * quantity;
+                var total = price.replace(',', '') * quantity;
                 $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(1)').find('input').remove();
                 $('#tableProductRecord tbody tr:eq(' + row.index() + ') td:eq(2)').find('input').remove();
                 $('#tableProductRecord>tbody>tr:eq(' + row.index() + ')').find('td:eq(1)').html(formatNumber(price, '.', ','));
@@ -465,7 +471,7 @@
 
                 var nameCustomer = $('#txtCustomerName').val();
                 var customerCode = GetCustomerName(listCustomer, nameCustomer);
-                
+
                 var ProductModel = {};
                 ProductModel.CustomerCode = customerCode;
                 ProductModel.NameCustomer = nameCustomer;
@@ -521,7 +527,7 @@
                 }
             })
         }
-        function GetCustomerName(listCustomer,nameCustomer) {
+        function GetCustomerName(listCustomer, nameCustomer) {
             var code = "";
             listCustomer.forEach(element => {
                 if (element.Name == nameCustomer) {
